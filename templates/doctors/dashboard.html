@@ -1,0 +1,109 @@
+{% extends "doctors/base.html" %}
+
+{% block header_title %}Doctor Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <h2>Welcome to the Attendance System</h2>
+        <p class="text-muted">A quick overview of your data.</p>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card text-white bg-primary shadow">
+                <div class="card-body">
+                    <h5 class="card-title">📚 Number of Courses</h5>
+                    <p class="card-text fs-1">{{ num_courses }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8 mb-4">
+            <div class="card shadow">
+                <div class="card-body bg-light">
+                    <h5 class="card-title text-primary">⌚ Last Recorded Attendance</h5>
+                    {% if last_lecture %}
+                        <p class="card-text fs-5">
+                            Recorded for: {{ last_lecture.course.name }} (Group: {{ last_lecture.group.name }})
+                            on: {{ last_lecture.date_time|date:"Y-m-d" }} at: {{ last_lecture.date_time|date:"H:i" }}
+                        </p>
+                    {% else %}
+                        <p class="card-text">No lecture has been recorded yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 mb-4">
+            <div class="alert alert-warning" role="alert">
+                <h5 class="alert-heading">🔔 Absence Alerts (Total Absences ≥ {{ warning_threshold }})</h5>
+                
+                {% if warnings %}
+                    <ul class="mb-0 list-unstyled">
+                    {% for student_warning in warnings %}
+                        <li class="mb-2">
+                            {{ student_warning.name }} (ID: {{ student_warning.university_id }}) 
+                            has {{ student_warning.total_absences }} recorded absences.
+                            
+                            {% if student_warning.warning_courses %}
+                                <div class="ms-3 small text-danger">
+                                    <span class="fw-bold">Triggered in:</span>
+                                    <ul class="list-unstyled mb-0">
+                                        {% for course_detail in student_warning.warning_courses %}
+                                            <li>
+                                                <i class="fas fa-arrow-right me-1"></i> 
+                                                {{ course_detail.course_code }} - {{ course_detail.course_name }} 
+                                                ({{ course_detail.absences }} Absences)
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="mb-0">No students currently meet the absence alert threshold in your courses.</p>
+                {% endif %}
+                </div>
+        </div>
+    </div>
+
+    <hr>
+    
+    <div class="row">
+        <div class="col-12">
+            <h3>Your Courses Schedule</h3>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="bg-dark text-white">
+                        <tr>
+                            <th>Course Code</th>
+                            <th>Course Name</th>
+                            <th>Number of Groups</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for course in courses %}
+                        <tr>
+                            <td>{{ course.code }}</td>
+                            <td>{{ course.name }}</td>
+                            <td>{{ course.groups.count }}</td>
+                            <td>
+                                <a href="{% url 'group_list' course_id=course.id %}" class="btn btn-sm btn-info">View Groups</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center">You have not added any courses yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div> 
+{% endblock content %} 

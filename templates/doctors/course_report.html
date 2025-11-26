@@ -1,0 +1,65 @@
+{% extends "doctors/base.html" %}
+
+{% block header_title %}Detailed Report: {{ course.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <h2>Detailed Report for: {{ course.name }} ({{ course.code }})</h2>
+        <a href="{% url 'report_home' %}" class="btn btn-secondary btn-sm mb-3">← Back to Reports Home</a>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-info text-white shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Total Lectures Recorded</h5>
+                    <p class="card-text fs-2 fw-bold">{{ total_lectures }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if total_lectures == 0 %}
+        <div class="alert alert-warning">
+            No attendance lectures have been recorded for this course yet.
+        </div>
+    {% else %}
+        <div class="row">
+            <div class="col-12">
+                <h4>Student Attendance Summary (Warning if Absences ≥ {{ warning_threshold }})</h4>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped table-hover shadow-sm">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Student Name</th>
+                                <th>ID</th>
+                                <th>Total Absences</th>
+                                <th>Attendance %</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in student_data %}
+                            <tr class="{% if student.is_warning %}table-danger{% endif %}">
+                                <td>{{ student.name }}</td>
+                                <td>{{ student.id }}</td>
+                                <td><span class="fw-bold">{{ student.absent_count }}</span></td>
+                                <td>{{ student.attendance_percentage }}</td>
+                                <td>
+                                    {% if student.is_warning %}
+                                        <span class="badge bg-danger">⚠️ WARNING</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Normal</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock content %}

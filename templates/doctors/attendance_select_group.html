@@ -1,0 +1,47 @@
+{% extends "doctors/base.html" %}
+
+{% block header_title %}Select Group for Attendance{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <h2>Select Course and Group</h2>
+        <p class="text-muted">Choose the course and the group for which you want to record attendance.</p>
+    </div>
+
+    <div class="row">
+        {% for course in courses %}
+        <div class="col-12 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-dark text-white">
+                    <h4 class="mb-0">📚 {{ course.name }} ({{ course.code }})</h4>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Available Groups:</h5>
+                    {% if course.groups.all %}
+                    <div class="d-flex flex-wrap">
+                        {% for group in course.groups.all %}
+                        <div class="p-2 border rounded me-3 mb-2 bg-light">
+                            <span class="fw-bold">Group {{ group.name }}</span>
+                            <a href="{% url 'take_attendance' group_id=group.id %}" class="btn btn-primary btn-sm ms-3">
+                                Start Attendance
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning">No groups defined for this course yet. Please define groups via Course Management.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-danger" role="alert">
+                You are not teaching any courses. Please contact the administrator.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock content %}

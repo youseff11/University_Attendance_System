@@ -1,0 +1,40 @@
+{% extends "doctors/base.html" %}
+
+{% block header_title %}Groups for {{ course.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <h2>Groups for: {{ course.name }} ({{ course.code }})</h2>
+        <a href="{% url 'course_list' %}" class="btn btn-secondary btn-sm mb-3">← Back to Courses</a>
+    </div>
+
+    <div class="row">
+        {% for group in groups %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card shadow border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Group Name: {{ group.name }}</h5>
+                </div>  
+                <div class="card-body">
+                    <p class="card-text">
+                        Total Students: {{ group.students.count }}
+                    </p>
+                    <hr>
+                    <a href="{% url 'student_upload_excel' group_id=group.id %}" class="btn btn-success btn-sm w-100 mb-2">
+                        📥 Upload Students (Excel/CSV)
+                    </a>
+                    <a href="{% url 'group_student_list' group_id=group.id %}" class="btn btn-outline-primary btn-sm w-100">
+                        View Student List
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-warning">No groups found for this course.</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock content %} 

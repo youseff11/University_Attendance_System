@@ -1,0 +1,149 @@
+{% extends "doctors/base.html" %}
+
+{% block header_title %}Student Management & Search{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    {# ... كود واجهة البحث ... #}
+    <div class="row mb-4">
+        <h2>🧑‍🎓 Student Search</h2>
+        <p class="text-muted">Search for any student by ID or Name, or view all students.</p>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-lg-8 col-md-10">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="get" action="{% url 'student_search' %}" class="d-flex">
+                        <input class="form-control me-2" type="search" placeholder="Enter Student ID or Name" aria-label="Search" name="query" value="{{ search_query|default:'' }}">
+                        <button class="btn btn-primary" type="submit">Search</button>
+                        {% if search_query %}
+                            <a href="{% url 'student_search' %}" class="btn btn-outline-secondary ms-2">Clear</a>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    {% if searched_student %}
+    
+    {# -------------------------------------------------------------------------------- #}
+    {# حالة عرض تفاصيل طالب واحد محدد (البحث الدقيق بـ ID) - لم يتم تغيير هذا الجزء كثيراً #}
+    {# -------------------------------------------------------------------------------- #}
+    <div class="row mb-5">
+        <div class="col-12">
+            <h3>Student Details (ID: {{ searched_student.university_id }})</h3>
+
+            <div class="card mb-4 shadow-sm 
+                {% if searched_student.has_warning %}
+                    bg-danger text-white
+                {% else %}
+                    bg-success text-white
+                {% endif %}"
+            >
+                <div class="card-body">
+                    <h5 class="mb-0">
+                        {# استخدام warning_status_text الذي أعددناه ليعرض إما "High Risk (X Absences in YYY)" أو "High Risk (Z Courses)" #}
+                        {% if searched_student.has_warning %}
+                            🚨 ALARM: {{ searched_student.warning_status_text }}
+                        {% else %}
+                            ✅ Status: Safe
+                        {% endif %}
+                    </h5>
+                    {# تم تغيير هذا السطر لعرض حالة الإنذار المفصلة بدلاً من الغياب الكلي فقط #}
+                    <p class="mb-0 small">
+                        Total Absences Recorded: {{ searched_student.total_absences }} (Warning Threshold is {{ warning_threshold }})
+                    </p>
+                    
+                    {% if searched_student.warning_courses %}
+                    <hr class="border-light">
+                    <p class="mb-0 small fw-bold">Warning Triggered By:</p>
+                    <ul class="list-unstyled mb-0">
+                        {% for item in searched_student.warning_courses %}
+                            <li class="small">
+                                <i class="fas fa-exclamation-triangle"></i> 
+                                {{ item.course_code }} - {{ item.course_name }}: {{ item.absences }} Absences.
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                    </div>
+            </div>
+            <div class="card bg-light shadow-sm">
+                <div class="card-body">
+                    <h4 class="card-title">{{ searched_student.name }}</h4>
+                    <p class="card-text">
+                        <strong>GPA:</strong> {{ searched_student.gpa|default:"N/A" }} | 
+                        <strong>Total Courses Enrolled:</strong> {{ searched_student.enrolled_courses|length }}
+                    </p>
+
+                    <h5>Enrolled Courses:</h5>
+                    {% if searched_student.enrolled_courses %}
+                        <ul class="list-group list-group-flush">
+                            {% for course in searched_student.enrolled_courses %}
+                                <li class="list-group-item">
+                                    {{ course.code }} - {{ course.name }} (Taught by: {{ course.doctor.get_full_name|default:course.doctor.username }})
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>This student is not currently enrolled in any courses.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    {# ------------------------------------------------------------- #}
+    {# حالة عرض قائمة الطلاب (جميع الطلاب أو نتائج البحث بالاسم) #}
+    {# ------------------------------------------------------------- #}
+    <div class="row">
+        <div class="col-12">
+            <h3>{% if search_query %}Search Results for "{{ search_query }}"{% else %}All Students{% endif %} (Total: {{ students|length }})</h3>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover shadow-sm">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>GPA</th>
+                            <th>Warning Status</th> 
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody> 
+                        {% for student in students %}
+                        {# تم تعديل الشرط هنا ليعتمد على student.has_warning #}
+                        <tr {% if student.has_warning %} class="table-danger" {% endif %}> 
+                            <td>{{ student.university_id }}</td>
+                            <td>{{ student.name }}</td>
+                            <td>{{ student.gpa|default:"N/A" }}</td>
+                            <td>
+                                {# 💥 التعديل الرئيسي هنا: استخدام الخاصية الجديدة التي تحتوي على النص التفصيلي #}
+                                {% if student.has_warning %}
+                                    <span class="badge bg-danger">🚨 {{ student.warning_status_text }}</span>
+                                {% else %}
+                                    {# عرض Safe (0) أو ما شابه باستخدام النص المُعد #}
+                                    <span class="badge bg-success">✅ {{ student.warning_status_text }}</span>
+                                {% endif %}
+                            </td>
+                            <td> 
+                                <a href="{% url 'student_search' %}?query={{ student.university_id }}" class="btn btn-sm btn-outline-primary">View Details</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center">No student records found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock content %} 

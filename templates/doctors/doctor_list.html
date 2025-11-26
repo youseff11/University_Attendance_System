@@ -1,0 +1,55 @@
+{% extends "doctors/base.html" %}
+
+{% block header_title %}All System Doctors{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <h2>👨‍⚕️ Doctors Directory</h2>
+        <p class="text-muted">A list of all registered doctors and the courses each one teaches.</p>
+    </div>
+    
+    <hr>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Total Doctors: {{ doctors|length }}</h5>
+                    <div class="accordion" id="doctorsAccordion">
+                        {% for doctor in doctors %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading{{ doctor.id }}">
+                                <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ doctor.id }}" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="collapse{{ doctor.id }}">
+                                    Dr. {{ doctor.get_full_name|default:doctor.username }} <span class="ms-3 badge bg-primary">{{ doctor.course_count }} Courses</span>
+                                </button>
+                            </h2>
+                            <div id="collapse{{ doctor.id }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" aria-labelledby="heading{{ doctor.id }}" data-bs-parent="#doctorsAccordion">
+                                <div class="accordion-body">
+                                    {% if doctor.taught_courses %}
+                                        <h6>Taught Courses:</h6>
+                                        <ul class="list-group list-group-flush">
+                                            {% for course in doctor.taught_courses %}
+                                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                    {{ course.name }} ({{ course.code }})
+                                                    {# 💥 التعديل هنا لاستخدام groups_count الذي تم حسابه مسبقاً #}
+                                                    <span class="badge bg-secondary rounded-pill">Groups: {{ course.groups_count }}</span>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                        <p class="text-muted">This doctor is not currently assigned to any courses.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-center p-3">No doctors registered in the system.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %} 
