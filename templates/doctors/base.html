@@ -17,12 +17,12 @@
             height: 100vh;
             position: fixed;
             top: 0;
-            right: 0; /* تم التعديل: تثبيت الشريط الجانبي على اليمين ليتوافق مع RTL */
-            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1); /* تم تعديل اتجاه الظل */
+            right: 0; /* الشريط الجانبي على اليمين ليتوافق مع RTL */
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1); 
             z-index: 1000;
         }
         .content {
-            margin-right: 250px; /* تم التعديل: إضافة هامش من اليمين */
+            margin-right: 250px; /* هامش للمحتوى الرئيسي من اليمين */
             padding: 20px;
         }
         .sidebar-links a {
@@ -32,7 +32,7 @@
             display: block;
             border-radius: 5px;
             margin-bottom: 5px;
-            text-align: right; /* محاذاة الروابط لليمين في وضع RTL القياسي */
+            text-align: right; /* محاذاة الروابط لليمين في وضع RTL */
         }
         .sidebar-links a:hover {
             background-color: #5c6bc0;
@@ -48,12 +48,12 @@
             color: white;
             border: none;
             padding: 15px;
-            text-align: left; /* تم التعديل: لجعل الأيقونة على اليسار في وضع الجوال LTR */
+            text-align: right; 
             font-size: 1.2rem;
             cursor: pointer;
         }
         
-        /* جعل أيقونة القائمة (الشرطات الثلاثة) بيضاء */
+        /* لتغيير لون أيقونة القائمة إلى الأبيض */
         .navbar-toggler-icon {
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 1%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
         }
@@ -65,24 +65,27 @@
                 position: static;
                 box-shadow: none;
                 padding: 0;
-                right: auto; /* إلغاء التثبيت الأيمن */
-                left: 0; /* تحريك الشريط لليسار في وضع الجوال */
+                right: auto; 
+                left: auto; 
             }
             
             .content {
-                margin-right: 0; /* إلغاء الهامش الأيمن في وضع الجوال */
+                margin-right: 0; 
                 padding-top: 5px;
             }
             
-            /* تفعيل وضع LTR (المحتوى يبدأ من الشمال) */
+            /* التراجع عن محاذاة اليسار (LTR) والعودة إلى المحاذاة المركزية الافتراضية للروابط */
             .sidebar h3, .sidebar p, .sidebar hr, .sidebar-links a {
-                text-align: left !important; /* محاذاة كل العناصر لليسار */
+                text-align: center !important; /* أو يمكنك استخدام right إذا كنت تفضل أن تبدأ من اليمين */
+            }
+            .sidebar-links a {
+                text-align: right !important; /* إعادة محاذاة الروابط لليمين في وضع الجوال */
             }
 
             .menu-toggle {
                 display: block; 
                 border-bottom: none;
-                padding: 15px; /* للتأكد من المحاذاة الصحيحة */
+                padding: 15px;
             }
             
             .menu-toggle-wrapper {
@@ -91,8 +94,8 @@
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                /* في وضع LTR (محاذاة من الشمال)، الـ h3 سيكون على اليسار والأيقونة على اليمين */
-                flex-direction: row; 
+                /* في وضع RTL، العنوان على اليمين والأيقونة على اليسار */
+                flex-direction: row-reverse; /* لضمان أن العنوان على اليمين والأيقونة على اليسار */
             }
             
             .menu-toggle-wrapper h3 {
@@ -109,7 +112,7 @@
             }
             
             .sidebar .logout-form button {
-                text-align: left !important; /* محاذاة زر الخروج لليسار */
+                text-align: right !important; /* محاذاة زر الخروج لليمين */
             }
         }
     </style>
@@ -124,8 +127,6 @@
         </div>
 
         <div class="menu-toggle-wrapper d-flex d-md-none">
-            <h3>Attendance System</h3> 
-
             <button class="menu-toggle btn btn-link text-white" 
                     type="button" 
                     data-bs-toggle="collapse" 
@@ -135,6 +136,8 @@
                     aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span> 
             </button>
+            
+            <h3>Attendance System</h3> 
         </div>
 
         <hr class="d-none d-md-block">
@@ -156,7 +159,7 @@
                 
                 <form action="{% url 'logout' %}" method="post" class="logout-form">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-link text-white text-decoration-none p-0 m-0" style="display: block; width: 100%; text-align: left; padding: 10px 15px !important;">
+                    <button type="submit" class="btn btn-link text-white text-decoration-none p-0 m-0" style="display: block; width: 100%; text-align: right !important; padding: 10px 15px !important;">
                         🚪 Logout
                     </button>
                 </form>
