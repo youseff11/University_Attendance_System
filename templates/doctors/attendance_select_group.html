@@ -21,9 +21,9 @@
                     {% if course.groups.all %}
                     <div class="d-flex flex-wrap">
                         {% for group in course.groups.all %}
-                        <div class="p-2 border rounded me-3 mb-2 bg-light">
+                        <div class="p-2 border rounded me-md-3 mb-2 bg-light d-flex flex-column flex-md-row align-items-md-center justify-content-between">
                             <span class="fw-bold">Group {{ group.name }}</span>
-                            <a href="{% url 'take_attendance' group_id=group.id %}" class="btn btn-primary btn-sm ms-3">
+                            <a href="{% url 'take_attendance' group_id=group.id %}" class="btn btn-primary btn-sm w-100 w-md-auto mt-2 mt-md-0 ms-md-3">
                                 Start Attendance
                             </a>
                         </div>
