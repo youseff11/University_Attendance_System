@@ -43,12 +43,11 @@
         
         .menu-toggle {
             display: none; 
-            background-color: #3f51b5;
+            background-color: transparent; /* جعل خلفية الزر شفافة ليظهر لون الـ wrapper */
             color: white;
             border: none;
             padding: 15px;
-            width: 100%;
-            text-align: right; /* تم التعديل: محاذاة النص لليمين داخل الزر */
+            text-align: right; 
             font-size: 1.2rem;
             cursor: pointer;
         }
@@ -70,21 +69,26 @@
 
             .menu-toggle {
                 display: block; 
-                border-bottom: none; /* تم التعديل: إزالة الخط السفلي */
+                border-bottom: none;
             }
             
-            /* تعديل نمط الزر لجعله يبدو كالرأس العادي */
             .menu-toggle-wrapper {
                 background-color: #3f51b5;
                 color: white;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                padding: 0 15px;
+                /* إزالة الـ padding هنا وضعه في الـ h3 والـ button لمرونة أكبر */
             }
-
+            
+            /* لضمان أن العنوان يظهر بشكل صحيح */
+            .menu-toggle-wrapper h3 {
+                margin: 0 !important;
+                padding: 15px;
+            }
+            
             .sidebar-header {
-                display: none; /* إخفاء الرأس الأصلي في الشاشات الصغيرة */
+                display: none; 
             }
 
             .sidebar-links a {
@@ -120,7 +124,7 @@
         </div>
 
         <div class="menu-toggle-wrapper d-flex d-md-none">
-            <h3 class="my-3">Attendance System</h3> 
+            <h3>Attendance System</h3> 
 
             <button class="menu-toggle btn btn-link text-white" 
                     type="button" 
@@ -129,7 +133,7 @@
                     aria-controls="sidebarMenu" 
                     aria-expanded="false" 
                     aria-label="Toggle navigation">
-                <span class="d-none d-sm-inline">Menu</span> <span class="navbar-toggler-icon"></span> 
+                <span class="navbar-toggler-icon"></span> 
             </button>
         </div>
 
