@@ -48,7 +48,7 @@
             border: none;
             padding: 15px;
             width: 100%;
-            text-align: left;
+            text-align: right; /* تم التعديل: محاذاة النص لليمين داخل الزر */
             font-size: 1.2rem;
             cursor: pointer;
         }
@@ -70,13 +70,21 @@
 
             .menu-toggle {
                 display: block; 
-                border-bottom: 1px solid #5c6bc0;
+                border-bottom: none; /* تم التعديل: إزالة الخط السفلي */
+            }
+            
+            /* تعديل نمط الزر لجعله يبدو كالرأس العادي */
+            .menu-toggle-wrapper {
+                background-color: #3f51b5;
+                color: white;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0 15px;
             }
 
             .sidebar-header {
-                background-color: #3f51b5;
-                color: white;
-                padding: 0 15px;
+                display: none; /* إخفاء الرأس الأصلي في الشاشات الصغيرة */
             }
 
             .sidebar-links a {
@@ -107,21 +115,24 @@
     {% if request.user.is_authenticated %}
     <div class="sidebar">
         
-        <div class="sidebar-header d-flex justify-content-between align-items-center">
-            <h3 class="my-3 mx-auto">Attendance System</h3> 
+        <div class="sidebar-header d-none d-md-flex justify-content-center align-items-center">
+            <h3 class="my-3">Attendance System</h3> 
+        </div>
 
-            <button class="menu-toggle btn btn-link text-white d-md-none" 
+        <div class="menu-toggle-wrapper d-flex d-md-none">
+            <h3 class="my-3">Attendance System</h3> 
+
+            <button class="menu-toggle btn btn-link text-white" 
                     type="button" 
                     data-bs-toggle="collapse" 
                     data-bs-target="#sidebarMenu" 
                     aria-controls="sidebarMenu" 
                     aria-expanded="false" 
                     aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span> 
-                Menu
+                <span class="d-none d-sm-inline">Menu</span> <span class="navbar-toggler-icon"></span> 
             </button>
         </div>
-        
+
         <hr class="d-none d-md-block">
         
         <div class="collapse d-md-block" id="sidebarMenu">
