@@ -497,7 +497,8 @@ def course_report(request, course_id):
 @login_required
 def student_search(request):
     """
-    عرض قائمة بجميع الطلاب والتعامل مع البحث برقم الهوية أو الاسم، وإظهار تفاصيل الإنذارات.
+    عرض قائمة بجميع الطلاب والتعامل مع البحث برقم الهوية أو الاسم، وإظهار تفاصيل الإنذارات،
+    مع إضافة تفاصيل الغياب لكل مادة للطالب المحدد.
     """
     if not is_doctor(request.user):
         messages.error(request, 'Access Denied.')
@@ -508,21 +509,21 @@ def student_search(request):
     searched_student = None
     
     students_qs = Student.objects.all().order_by('name')
-    final_student_list = [] # قائمة الطلاب النهائية التي سيتم إرسالها للقالب
+    final_student_list = []
 
     if search_query:
-        # 1. حالة البحث الدقيق برقم الهوية (ID)
         specific_student = students_qs.filter(university_id=search_query).first()
         
         if specific_student:
             searched_student = specific_student
             
-            # (الكود الحالي لحساب تفاصيل الإنذار للطالب الواحد يبقى كما هو - وهو ممتاز)
             enrolled_courses = Course.objects.filter(groups__students=searched_student).distinct()
             searched_student.enrolled_courses = enrolled_courses
             
             warning_courses = []
             total_absences_overall = 0
+            
+            all_course_absences = []
             
             for course in enrolled_courses:
                 absences_in_course = searched_student.attendance_records.filter(
@@ -532,6 +533,14 @@ def student_search(request):
                 
                 total_absences_overall += absences_in_course
                 
+                if absences_in_course > 0: 
+                    all_course_absences.append({
+                        'course_name': course.name,
+                        'course_code': course.code,
+                        'absences': absences_in_course,
+                        'is_warning': absences_in_course >= warning_threshold
+                    })
+                
                 if absences_in_course >= warning_threshold:
                     warning_courses.append({
                         'course_name': course.name,
@@ -540,49 +549,47 @@ def student_search(request):
                     })
 
             searched_student.total_absences = total_absences_overall
-            # التعديل هنا: تحديد ما إذا كان لديه إنذار واحد أو أكثر
+            searched_student.all_course_absences = all_course_absences
+            
             if len(warning_courses) > 1:
                 searched_student.warning_status_text = f"High Risk ({len(warning_courses)} Courses)"
             elif len(warning_courses) == 1:
                 searched_student.warning_status_text = f"High Risk ({warning_courses[0]['absences']} Absences in {warning_courses[0]['course_code']})"
             else:
-                 searched_student.warning_status_text = "Safe (0)"
+                searched_student.warning_status_text = "Safe (0)"
 
             searched_student.has_warning = len(warning_courses) > 0
             searched_student.warning_courses = warning_courses
 
-            final_student_list = [searched_student] # عرض الطالب المحدد فقط
+            final_student_list = [searched_student]
             
         else:
-            # 2. حالة البحث بالاسم أو ID غير دقيق (عرض قائمة نتائج)
             students_qs = students_qs.filter(
                 Q(name__icontains=search_query) | Q(university_id__icontains=search_query)
             )
             if not students_qs.exists():
                 messages.warning(request, f'No students found matching "{search_query}".')
             
-            # المرور على كل طالب في قائمة النتائج وحساب إنذاراته
             for student in students_qs:
                 student_warning_details = []
                 enrolled_courses = Course.objects.filter(groups__students=student).distinct()
                 
                 for course in enrolled_courses:
-                     absences = student.attendance_records.filter(
+                    absences = student.attendance_records.filter(
                         lecture__course=course,
                         status=AttendanceStatus.ABSENT
                     ).count()
                     
-                     if absences >= warning_threshold:
+                    if absences >= warning_threshold:
                         student_warning_details.append({
-                             'absences': absences,
-                             'course_code': course.code
+                            'absences': absences,
+                            'course_code': course.code
                         })
                 
                 if len(student_warning_details) > 1:
                     student.warning_status_text = f"High Risk ({len(student_warning_details)} Courses)"
                     student.has_warning = True
                 elif len(student_warning_details) == 1:
-                    # الرقم بجانب الإنذار هو عدد الغيابات في تلك المادة
                     absences = student_warning_details[0]['absences']
                     course_code = student_warning_details[0]['course_code']
                     student.warning_status_text = f"High Risk ({absences} in {course_code})"
@@ -594,38 +601,36 @@ def student_search(request):
                 final_student_list.append(student)
             
     else:
-        # 3. عرض جميع الطلاب (في حالة عدم وجود بحث)
         for student in students_qs:
-             student_warning_details = []
-             enrolled_courses = Course.objects.filter(groups__students=student).distinct()
-             
-             for course in enrolled_courses:
-                 absences = student.attendance_records.filter(
+            student_warning_details = []
+            enrolled_courses = Course.objects.filter(groups__students=student).distinct()
+            
+            for course in enrolled_courses:
+                absences = student.attendance_records.filter(
                     lecture__course=course,
                     status=AttendanceStatus.ABSENT
                 ).count()
                 
-                 if absences >= warning_threshold:
-                     student_warning_details.append({
-                         'absences': absences,
-                         'course_code': course.code
-                     })
-             
-             if len(student_warning_details) > 1:
-                 student.warning_status_text = f"High Risk ({len(student_warning_details)} Courses)"
-                 student.has_warning = True
-             elif len(student_warning_details) == 1:
-                 absences = student_warning_details[0]['absences']
-                 course_code = student_warning_details[0]['course_code']
-                 student.warning_status_text = f"High Risk ({absences} in {course_code})"
-                 student.has_warning = True
-             else:
-                 student.warning_status_text = "Safe (0)"
-                 student.has_warning = False
+                if absences >= warning_threshold:
+                    student_warning_details.append({
+                        'absences': absences,
+                        'course_code': course.code
+                    })
+            
+            if len(student_warning_details) > 1:
+                student.warning_status_text = f"High Risk ({len(student_warning_details)} Courses)"
+                student.has_warning = True
+            elif len(student_warning_details) == 1:
+                absences = student_warning_details[0]['absences']
+                course_code = student_warning_details[0]['course_code']
+                student.warning_status_text = f"High Risk ({absences} in {course_code})"
+                student.has_warning = True
+            else:
+                student.warning_status_text = "Safe (0)"
+                student.has_warning = False
 
-             final_student_list.append(student)
+            final_student_list.append(student)
 
-    # 4. إعداد الـ Context
     context = {
         'students': final_student_list,
         'search_query': search_query,
@@ -634,7 +639,6 @@ def student_search(request):
     }
     
     return render(request, 'doctors/student_search.html', context)
-
 @login_required
 def group_student_list(request, group_id):
     """
