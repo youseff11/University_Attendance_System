@@ -4,6 +4,7 @@ from django.urls import path
 from . import views
 from django.contrib.auth import views as auth_views
 from .views import GroupAutocomplete , StudentAutocomplete
+from .api_views import StudentProfileView
 
 urlpatterns = [
     path('', views.doctor_dashboard, name='dashboard'), 
@@ -34,5 +35,9 @@ urlpatterns = [
     path('group-autocomplete/', GroupAutocomplete.as_view(), name='group_autocomplete'),
     path('student-autocomplete/', StudentAutocomplete.as_view(), name='student_autocomplete'),
     path('doctors/', views.doctor_list, name='doctor_list'),
+
+
+    # API
+    path('api/student/profile/<str:university_id>/', StudentProfileView.as_view(), name='student_profile_api'),
 
 ]
