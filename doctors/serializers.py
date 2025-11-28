@@ -1,8 +1,13 @@
 # doctors/serializers.py
+
 from rest_framework import serializers
+from django.db.models import Count, Q 
 from .models import Student, AttendanceRecord, Course, Lecture, Group, AttendanceStatus
 
-# --- 1. Serializer للحالة التفصيلية للحضور في محاضرة واحدة
+# --- ثابت حد الإنذار (WARNING_THRESHOLD)
+WARNING_THRESHOLD = 3 # حد الإنذار: 3 غيابات
+
+# --- 1. AttendanceRecord Serializer
 class AttendanceRecordSerializer(serializers.ModelSerializer):
     lecture_topic = serializers.ReadOnlyField(source='lecture.topic')
     lecture_date = serializers.DateTimeField(source='lecture.date_time', format="%Y-%m-%d %H:%M")
@@ -13,27 +18,63 @@ class AttendanceRecordSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AttendanceRecord
-        # لا نحتاج 'student' لأنه محدد سلفاً عند الاستعلام
         fields = ('id', 'lecture_topic', 'lecture_date', 'course_name', 'course_code', 'group_name', 'status', 'status_text', 'timestamp')
 
     def get_status_text(self, obj):
-        # لتحويل الكود 'P' إلى 'Present' للعرض
         return obj.get_status_display()
 
-# --- 2. Serializer لملف تعريف الطالب (Student Profile)
+# --- 2. StudentProfile Serializer (المحدث)
 class StudentProfileSerializer(serializers.ModelSerializer):
-    # جلب تفاصيل مجموعات الطالب
     groups_info = serializers.SerializerMethodField()
-    # جلب إجمالي سجلات الحضور الأخيرة للطالب (مثلاً آخر 20 سجل)
     recent_attendance = serializers.SerializerMethodField()
+    
+    # 🚀 حقول الإنذار الجديدة
+    is_under_warning = serializers.SerializerMethodField()
+    warning_courses_details = serializers.SerializerMethodField() 
 
     class Meta:
         model = Student
-        fields = ('id', 'name', 'university_id', 'gpa', 'groups_info', 'recent_attendance')
-        # لا تعرض جميع الحقول إذا كانت حساسة، لكن هذه هي الأساسية المطلوبة
+        # إضافة الحقول الجديدة
+        fields = ('id', 'name', 'university_id', 'gpa', 'groups_info', 'recent_attendance', 'is_under_warning', 'warning_courses_details')
 
+    # دالة مساعدة لحساب الغيابات وتفاصيل الإنذار
+    def _get_warning_details(self, obj):
+        """حساب الغيابات في كل مقرر ومقارنتها بحد الإنذار."""
+        warning_details = []
+        
+        # تجميع الغيابات حسب المقرر. يفترض أن رمز الغياب هو 'A' (Absent)
+        absence_counts = obj.attendance_records.filter(
+            Q(status='A')
+        ).values(
+            'lecture__course__code', 
+            'lecture__course__name'
+        ).annotate(
+            absences_count=Count('lecture__course__code')
+        )
+        
+        # مقارنة كل مقرر بحد الإنذار
+        for item in absence_counts:
+            if item['absences_count'] >= WARNING_THRESHOLD:
+                warning_details.append({
+                    'course_code': item['lecture__course__code'],
+                    'course_name': item['lecture__course__name'],
+                    'absences_count': item['absences_count'],
+                    'threshold': WARNING_THRESHOLD,
+                })
+        
+        return warning_details
+
+    # 🚀 Serializer Method Field: هل يوجد إنذار؟
+    def get_is_under_warning(self, obj):
+        warning_details = self._get_warning_details(obj)
+        return len(warning_details) > 0
+
+    # 🚀 Serializer Method Field: تفاصيل المقررات التي بها إنذار
+    def get_warning_courses_details(self, obj):
+        return self._get_warning_details(obj)
+        
+    # دوال existing
     def get_groups_info(self, obj):
-        # إرجاع قائمة بالمقررات والمجموعات المسجل بها الطالب
         groups_list = []
         for group in obj.groups.all():
             groups_list.append({
@@ -44,7 +85,5 @@ class StudentProfileSerializer(serializers.ModelSerializer):
         return groups_list
 
     def get_recent_attendance(self, obj):
-        # جلب آخر 20 سجل حضور وغياب للطالب
         recent_records = obj.attendance_records.all().order_by('-lecture__date_time')[:20]
-        # استخدام AttendanceRecordSerializer لتحويل السجلات إلى JSON
         return AttendanceRecordSerializer(recent_records, many=True).data
