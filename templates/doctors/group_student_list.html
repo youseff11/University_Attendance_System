@@ -1,0 +1,283 @@
+{% extends "doctors/base.html" %}
+
+{% block header_title %}
+    <span class="lang-en">Group Roster: {{ group.name }}</span>
+    <span class="lang-ar d-none">قائمة المجموعة: {{ group.name }}</span>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 main-roster-wrapper">
+    
+    <div class="row mb-4 align-items-end">
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a href="{% url 'group_list' course_id=group.course.id %}" class="text-decoration-none text-primary">{{ group.course.code }}</a></li>
+                    <li class="breadcrumb-item active text-muted" aria-current="page">{{ group.name }}</li>
+                </ol>
+            </nav>
+            <h2 class="display-6 fw-extrabold text-dark mb-0">
+                <i class="fas fa-users-rectangle me-2 ms-2 text-primary"></i>
+                <span class="lang-en">Squad Intelligence</span>
+                <span class="lang-ar d-none">استخبارات المجموعة</span>
+            </h2>
+            <p class="text-secondary mt-1 fs-6">
+                {{ group.course.name }} | 
+                <span class="badge bg-soft-primary text-primary px-3">
+                    <span class="lang-en">Total: {{ students|length }} Students</span>
+                    <span class="lang-ar d-none">الإجمالي: {{ students|length }} طالب</span>
+                </span>
+            </p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <a href="{% url 'group_list' course_id=group.course.id %}" class="btn btn-neo-back px-4">
+                <i class="fas fa-chevron-left me-2 ms-2"></i>
+                <span class="lang-en">Back to Groups</span>
+                <span class="lang-ar d-none">العودة للمجموعات</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-lg rounded-25 overflow-hidden">
+                <div class="table-responsive custom-scrollbar">
+                    <table class="table table-hover align-middle mb-0 roster-table">
+                        <thead>
+                            <tr>
+                                <th class="ps-4">#</th>
+                                <th>
+                                    <span class="lang-en">Student Identity</span>
+                                    <span class="lang-ar d-none">هوية الطالب</span>
+                                </th>
+                                <th>
+                                    <span class="lang-en">Academic Performance</span>
+                                    <span class="lang-ar d-none">الأداء الأكاديمي</span>
+                                </th>
+                                <th>
+                                    <span class="lang-en">Attendance Health</span>
+                                    <span class="lang-ar d-none">حالة الحضور</span>
+                                </th>
+                                <th class="text-center">
+                                    <span class="lang-en">Operations</span>
+                                    <span class="lang-ar d-none">العمليات</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                            <tr class="student-row {% if student.total_absences >= warning_threshold %}at-risk-pulse{% endif %}">
+                                <td class="ps-4">
+                                    <span class="text-muted fw-bold">{{ forloop.counter }}</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle me-3 ms-3">
+                                            {{ student.name|slice:":1" }}
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark fs-6">{{ student.name }}</div>
+                                            <div class="small text-muted text-uppercase">
+                                                <span class="lang-en">ID: #{{ student.university_id }}</span>
+                                                <span class="lang-ar d-none">الرقم الجامعي: #{{ student.university_id }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="gpa-indicator">
+                                        <span class="fw-extrabold text-primary">{{ student.gpa|default:"0.0" }}</span>
+                                        <div class="progress" style="height: 6px; width: 100px; background-color: #e2e8f0; border-radius: 10px; margin-top: 4px;">
+                                            <div class="progress-bar bg-primary" 
+                                                role="progressbar"
+                                                style="width: {% if student.gpa %}{{ student.gpa|add:0 }}{% else %}0{% endif %}%"
+                                                aria-valuenow="{{ student.gpa }}" aria-valuemin="0" aria-valuemax="100">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if student.total_absences >= warning_threshold %}
+                                        <div class="status-chip danger">
+                                            <i class="fas fa-exclamation-triangle me-2 ms-2"></i>
+                                            <span class="lang-en">CRITICAL ({{ student.total_absences }})</span>
+                                            <span class="lang-ar d-none">حرج ({{ student.total_absences }})</span>
+                                        </div>
+                                    {% else %}
+                                        <div class="status-chip success">
+                                            <i class="fas fa-check-circle me-2 ms-2"></i>
+                                            <span class="lang-en">OPTIMAL ({{ student.total_absences }})</span>
+                                            <span class="lang-ar d-none">مثالي ({{ student.total_absences }})</span>
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center pe-4">
+                                    <a href="{% url 'student_search' %}?query={{ student.university_id }}" 
+                                       class="btn btn-action-view" 
+                                       data-bs-toggle="tooltip" 
+                                       title="View Full Profile">
+                                        <i class="fas fa-fingerprint"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5">
+                                    <div class="empty-state">
+                                        <i class="fas fa-user-slash fa-4x opacity-25 mb-3"></i>
+                                        <h5 class="text-muted">
+                                            <span class="lang-en">No students detected in this sector.</span>
+                                            <span class="lang-ar d-none">لا يوجد طلاب مسجلين في هذا القسم.</span>
+                                        </h5>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* UI Kit - Roster Pro */
+    :root {
+        --primary-accent: #283891;
+        --danger-pulse: #ff416c;
+        --success-glow: #00b09b;
+        --row-hover: #f8faff;
+    }
+
+    [向 dir="rtl"] .ms-2 { margin-right: 0.5rem !important; margin-left: 0 !important; }
+    [向 dir="rtl"] .me-3 { margin-left: 1rem !important; margin-right: 0 !important; }
+
+    .main-roster-wrapper { max-width: 1400px; margin: 0 auto; }
+    .rounded-25 { border-radius: 25px; }
+    .fw-extrabold { font-weight: 800; }
+
+    .roster-table thead {
+        background: #1e293b;
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .roster-table th {
+        padding: 20px 15px;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+    }
+
+    .student-row {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid #f1f5f9;
+        background: white;
+    }
+
+    .student-row:hover {
+        background-color: var(--row-hover);
+        transform: scale(1.005);
+        z-index: 2;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+
+    .avatar-circle {
+        width: 45px;
+        height: 45px;
+        background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        color: var(--primary-accent);
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .status-chip {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 16px;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+
+    .status-chip.success {
+        background: #e6fffa;
+        color: #047857;
+        border: 1px solid #b2f5ea;
+    }
+
+    .status-chip.danger {
+        background: #fff5f5;
+        color: #c53030;
+        border: 1px solid #feb2b2;
+    }
+
+    .at-risk-pulse {
+        background: #fffafa !important;
+        animation: pulse-red 2s infinite;
+    }
+
+    @keyframes pulse-red {
+        0% { box-shadow: 0 0 0 0 rgba(255, 65, 108, 0.2); }
+        70% { box-shadow: 0 0 0 10px rgba(255, 65, 108, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(255, 65, 108, 0); }
+    }
+
+    .at-risk-pulse .avatar-circle {
+        background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+        color: white;
+    }
+
+    .btn-neo-back {
+        background: white;
+        border: 1px solid #e2e8f0;
+        color: #64748b;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: 0.3s;
+    }
+    .btn-neo-back:hover {
+        background: var(--primary-accent);
+        color: white;
+        box-shadow: 0 4px 12px rgba(40, 56, 145, 0.2);
+    }
+
+    .btn-action-view {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: #f1f5f9;
+        color: var(--primary-accent);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.3s;
+        border: none;
+    }
+    .btn-action-view:hover {
+        background: var(--primary-accent);
+        color: white;
+        transform: rotate(15deg);
+    }
+
+    .bg-soft-primary { background-color: rgba(40, 56, 145, 0.1); }
+
+    .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    });
+</script>
+{% endblock content %}

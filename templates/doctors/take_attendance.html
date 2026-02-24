@@ -1,0 +1,266 @@
+{% extends "doctors/base.html" %}
+
+{% block header_title %}
+    <span class="lang-en">Attendance Uplink: {{ group.name }}</span>
+    <span class="lang-ar d-none">مزامنة الحضور: {{ group.name }}</span>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 main-attendance-wrapper">
+    
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a href="{% url 'select_group_for_attendance' %}" class="text-primary text-decoration-none">التحضير</a></li>
+                    <li class="breadcrumb-item active">{{ group.name }}</li>
+                </ol>
+            </nav>
+            <h2 class="display-6 fw-extrabold text-dark mb-0">
+                <i class="fas fa- virus me-2 text-primary pulse-icon"></i>
+                <span class="lang-en">Face Recognition Attendance</span>
+                <span class="lang-ar d-none">التحضير ببصمة الوجه</span>
+            </h2>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-xl-10">
+            <ul class="nav nav-pills mb-4 justify-content-center neo-nav-pills" id="attendanceTabs" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active" id="face-tab" data-bs-toggle="pill" data-bs-target="#face-recognition">
+                        <i class="fas fa-user-check me-2"></i> بصمة الوجه
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="scanner-tab" data-bs-toggle="pill" data-bs-target="#scanner-upload">
+                        <i class="fas fa-file-upload me-2"></i> رفع ملف
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="attendanceTabsContent">
+                
+                <div class="tab-pane fade show active" id="face-recognition" role="tabpanel">
+                    <div class="card border-0 shadow-lg rounded-25 overflow-hidden">
+                        
+                        <div id="lecture-setup-section" class="p-5 text-center">
+                            <div class="mx-auto mb-4" style="width: 80px; height: 80px; background: #eef2ff; border-radius: 20px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-chalkboard-teacher fa-2x text-primary"></i>
+                            </div>
+                            <h4 class="fw-bold mb-3">إعداد المحاضرة الحالية</h4>
+                            <p class="text-muted mb-4">يجب إدخال تفاصيل المحاضرة قبل بدء تشغيل نظام بصمة الوجه</p>
+                            
+                            <div class="row justify-content-center">
+                                <div class="col-md-6">
+                                    <div class="mb-3 text-start">
+                                        <label class="form-label small fw-bold">عنوان المحاضرة</label>
+                                        <input type="text" id="lecture-topic-input" class="form-control custom-input" placeholder="مثلاً: Introduction to AI" required>
+                                    </div>
+                                    <button onclick="startAttendanceSession()" class="btn btn-neo-submit w-100 py-3">
+                                        بدء جلسة التحضير <i class="fas fa-arrow-right ms-2"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="camera-section" class="row g-0 d-none">
+                            <div class="col-md-7 bg-dark position-relative" style="min-height: 480px;">
+                                <video id="webcam" autoplay playsinline class="w-100 h-100" style="object-fit: cover;"></video>
+                                <canvas id="canvas" style="display:none;"></canvas>
+                                <div class="camera-overlay">
+                                    <div class="scanner-line"></div>
+                                </div>
+                                <div id="active-lecture-badge" class="status-badge" style="top: 20px; left: 20px; background: rgba(40, 167, 69, 0.8);">
+                                    <i class="fas fa-circle me-2 animate-pulse"></i> Session: <span id="display-topic"></span>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-5 bg-white p-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h4 class="fw-bold mb-0 text-primary">Live Detection</h4>
+                                    <button onclick="resetSession()" class="btn btn-sm btn-outline-danger">إنهاء الجلسة</button>
+                                </div>
+
+                                <div id="student-info-card" class="student-info-card empty mb-4">
+                                    <div class="text-center py-5">
+                                        <i class="fas fa-id-card fa-3x mb-3 text-light"></i>
+                                        <p class="text-muted">وجه الكاميرا نحو الطالب...</p>
+                                    </div>
+                                </div>
+
+                                <button id="capture-btn" class="btn btn-neo-submit w-100 py-3 shadow-sm">
+                                    <i class="fas fa-fingerprint me-2"></i> تحقق الآن
+                                </button>
+
+                                <div class="mt-4">
+                                    <h6 class="small fw-bold text-muted text-uppercase mb-2">Recent Logs</h6>
+                                    <div id="logs" class="small overflow-auto" style="max-height: 180px; border-top: 1px solid #eee;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="scanner-upload" role="tabpanel">
+                    <div class="card border-0 shadow-lg rounded-25 p-5">
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="mb-4 text-center">
+                                <h4 class="fw-bold">الرفع التقليدي (ملف الماسح)</h4>
+                                <p class="text-muted">قم برفع ملف الـ ID الخاص بالطلاب دفعة واحدة</p>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">عنوان المحاضرة</label>
+                                <input type="text" name="lecture_topic" class="form-control" required>
+                            </div>
+                            <div class="neo-upload-container py-5 text-center" id="dropZone">
+                                <input type="file" id="attendanceFile" name="attendance_file" required hidden>
+                                <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                                <h5 id="fileLabel">اسحب ملف الـ CSV/TXT هنا</h5>
+                            </div>
+                            <button type="submit" class="btn btn-neo-submit w-100 mt-4 py-3">رفع ومزامنة</button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root { --primary-blue: #283891; }
+    .rounded-25 { border-radius: 25px; }
+    .btn-neo-submit { background: linear-gradient(135deg, #283891 0%, #1a2561 100%); color: white; border-radius: 12px; border: none; transition: 0.3s; }
+    .btn-neo-submit:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(40, 56, 145, 0.3); color: white; }
+    
+    #webcam { transform: scaleX(-1); }
+    .camera-overlay { position: absolute; top: 10%; left: 10%; right: 10%; bottom: 10%; border: 2px dashed rgba(255,255,255,0.3); pointer-events: none; }
+    .scanner-line { height: 3px; background: #00ff00; position: absolute; width: 100%; top: 0; animation: scan 3s infinite linear; box-shadow: 0 0 15px #00ff00; }
+    @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
+    
+    .status-badge { position: absolute; color: white; padding: 6px 16px; border-radius: 50px; font-size: 13px; font-weight: bold; }
+    .student-info-card { border: 2px solid #f8f9fa; border-radius: 20px; padding: 20px; transition: all 0.4s ease; background: #fff; }
+    .student-info-card.success { border-color: #28a745; background: #f4fff6; transform: scale(1.02); }
+    
+    .neo-nav-pills .nav-link { border-radius: 50px; padding: 12px 30px; color: #6c757d; font-weight: 600; }
+    .neo-nav-pills .nav-link.active { background-color: var(--primary-blue); color: white; }
+    .neo-upload-container { border: 2px dashed #dee2e6; border-radius: 20px; cursor: pointer; transition: 0.3s; }
+    .neo-upload-container:hover { border-color: var(--primary-blue); background: #f8f9ff; }
+</style>
+
+<script>
+    let currentLectureTopic = "";
+    const video = document.getElementById('webcam');
+    const canvas = document.getElementById('canvas');
+    const captureBtn = document.getElementById('capture-btn');
+    const infoCard = document.getElementById('student-info-card');
+    const logs = document.getElementById('logs');
+
+    // 1. وظيفة بدء الجلسة (إخفاء الفورم وإظهار الكاميرا)
+    async function startAttendanceSession() {
+        const topicInput = document.getElementById('lecture-topic-input');
+        if (!topicInput.value.trim()) {
+            alert("يرجى إدخال عنوان المحاضرة أولاً");
+            return;
+        }
+
+        currentLectureTopic = topicInput.value;
+        document.getElementById('display-topic').innerText = currentLectureTopic;
+        
+        // تبديل الواجهات
+        document.getElementById('lecture-setup-section').classList.add('d-none');
+        document.getElementById('camera-section').classList.remove('d-none');
+
+        // تشغيل الكاميرا
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+            video.srcObject = stream;
+            addLog("🎥 Camera initialized for: " + currentLectureTopic);
+        } catch (err) {
+            addLog("❌ Camera Error: " + err.message);
+        }
+    }
+
+    // 2. منطق التقاط الصورة والتحقق
+    captureBtn.addEventListener('click', async () => {
+        captureBtn.disabled = true;
+        captureBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Analyzing Face...';
+        
+        const context = canvas.getContext('2d');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = canvas.toDataURL('image/jpeg');
+
+        try {
+            const response = await fetch("{% url 'face_attendance_check' %}", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
+                body: JSON.stringify({ 
+                    image: imageData, 
+                    group_id: "{{ group.id }}",
+                    lecture_topic: currentLectureTopic // نرسل العنوان للسيرفر ليتعامل معه
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                infoCard.className = "student-info-card success animate__animated animate__bounceIn";
+                const studentImg = data.image_url || '/static/img/default-avatar.png';
+                
+                infoCard.innerHTML = `
+                    <div class="text-center">
+                        <img src="${studentImg}" class="rounded-circle mb-3" style="width:90px; height:90px; object-fit:cover; border: 3px solid #28a745;">
+                        <h5 class="mb-1 text-success fw-bold">${data.student_name}</h5>
+                        <p class="small text-muted mb-1">ID: ${data.university_id}</p>
+                        <span class="badge bg-success">تم تسجيل الحضور بنجاح</span>
+                    </div>
+                `;
+                addLog(`✅ Marked: ${data.student_name}`);
+                
+                // إعادة البطاقة لحالتها بعد 5 ثواني لاستقبال طالب آخر
+                setTimeout(() => {
+                    infoCard.className = "student-info-card empty";
+                    infoCard.innerHTML = '<div class="text-center py-5"><i class="fas fa-id-card fa-3x mb-3 text-light"></i><p class="text-muted">جاهز للطالب التالي...</p></div>';
+                }, 5000);
+
+            } else {
+                addLog(`❌ Error: ${data.message}`);
+                infoCard.innerHTML = `<div class="text-center py-5 text-danger"><i class="fas fa-exclamation-triangle fa-2x mb-2"></i><br>${data.message}</div>`;
+            }
+        } catch (err) {
+            addLog(`❌ Connection Error`);
+        } finally {
+            captureBtn.disabled = false;
+            captureBtn.innerHTML = '<i class="fas fa-fingerprint me-2"></i> تحقق الآن';
+        }
+    });
+
+    // 3. إنهاء الجلسة والعودة للبداية
+    function resetSession() {
+        if (confirm("هل أنت متأكد من إنهاء جلسة التحضير الحالية؟")) {
+            location.reload();
+        }
+    }
+
+    function addLog(msg) {
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const entry = document.createElement('div');
+        entry.className = "py-1 border-bottom d-flex justify-content-between";
+        entry.innerHTML = `<span>${msg}</span> <span class="text-muted" style="font-size:10px">${time}</span>`;
+        logs.insertBefore(entry, logs.firstChild);
+    }
+
+    // ملف الرفع التقليدي
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('attendanceFile');
+    if (dropZone) {
+        dropZone.onclick = () => fileInput.click();
+        fileInput.onchange = () => document.getElementById('fileLabel').innerText = fileInput.files[0].name;
+    }
+</script>
+{% endblock content %}

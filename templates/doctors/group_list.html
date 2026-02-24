@@ -1,0 +1,218 @@
+{% extends "doctors/base.html" %}
+
+{% block header_title %}
+    <span class="lang-en">Group Operations</span>
+    <span class="lang-ar d-none">عمليات المجموعات</span>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4" style="background: #fdfeff; min-height: 100vh;">
+    
+    <div class="row mb-5">
+        <div class="col-12">
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb bg-transparent p-0">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'course_list' %}" class="text-decoration-none fw-bold text-primary">
+                            <span class="lang-en">Courses</span>
+                            <span class="lang-ar d-none">المقررات</span>
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active fw-bold" aria-current="page">{{ course.code }}</li>
+                </ol>
+            </nav>
+            <div class="course-detail-header p-4 p-md-5 rounded-30 shadow-lg text-white d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+                <div class="mb-3 mb-md-0">
+                    <h1 class="display-5 fw-black mb-1">{{ course.name }}</h1>
+                    <p class="lead opacity-75 mb-0">
+                        <i class="fas fa-fingerprint me-2 ms-2"></i> 
+                        <span class="lang-en">Unique Identifier: <strong>{{ course.code }}</strong></span>
+                        <span class="lang-ar d-none">المعرف الفريد: <strong>{{ course.code }}</strong></span>
+                    </p>
+                </div>
+                <div class="stats-glass-pill px-4 py-3">
+                    <span class="d-block x-small text-uppercase opacity-75 fw-bold">
+                        <span class="lang-en">Active Groups</span>
+                        <span class="lang-ar d-none">المجموعات النشطة</span>
+                    </span>
+                    <span class="h2 mb-0 fw-black">{{ groups|length }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {% for group in groups %}
+        <div class="col-xl-4 col-md-6 animate-slide-in" style="animation-delay: {{ forloop.counter0|add:1 }}00ms">
+            <div class="group-ops-card h-100 shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <div class="group-hex-icon">
+                            <i class="fas fa-users-cog"></i>
+                        </div>
+                        <span class="badge bg-soft-primary text-primary px-3 py-2 rounded-pill fw-bold">
+                            <span class="lang-en">#ID: {{ group.id }}</span>
+                            <span class="lang-ar d-none">رقم: {{ group.id }}</span>
+                        </span>
+                    </div>
+
+                    <h4 class="fw-bold text-dark mb-2">
+                        <span class="lang-en">Group: {{ group.name }}</span>
+                        <span class="lang-ar d-none">المجموعة: {{ group.name }}</span>
+                    </h4>
+                    
+                    <div class="student-count-indicator mb-4">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small text-muted fw-bold text-uppercase">
+                                <span class="lang-en">Enrollment Capacity</span>
+                                <span class="lang-ar d-none">السعة الاستيعابية</span>
+                            </span>
+                            <span class="small fw-bold text-primary">
+                                {{ group.students.count }} 
+                                <span class="lang-en">Students</span>
+                                <span class="lang-ar d-none">طالب</span>
+                            </span>
+                        </div>
+                        <div class="progress" style="height: 6px; border-radius: 10px; background-color: #f0f0f0;">
+                            <div class="progress-bar bg-primary rounded-pill" style="width: {% if group.students.count > 0 %}100%{% else %}0%{% endif %}"></div>
+                        </div>
+                    </div>
+
+                    <hr class="border-light-subtle my-4">
+
+                    <div class="d-grid gap-3">
+                        <a href="{% url 'student_upload_excel' group_id=group.id %}" class="btn btn-upload-excel py-3">
+                            <i class="fas fa-file-excel me-2 ms-2"></i>
+                            <span class="lang-en">Batch Student Upload</span>
+                            <span class="lang-ar d-none">رفع قائمة الطلاب (Excel)</span>
+                        </a>
+                        <a href="{% url 'group_student_list' group_id=group.id %}" class="btn btn-outline-ops py-3">
+                            <i class="fas fa-list-ul me-2 ms-2"></i>
+                            <span class="lang-en">Manage Student List</span>
+                            <span class="lang-ar d-none">إدارة قائمة الطلاب</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="glass-empty-state p-5 rounded-30 bg-white shadow-sm border border-light">
+                <div class="mb-4">
+                    <i class="fas fa-folder-plus fa-4x text-light-emphasis opacity-25"></i>
+                </div>
+                <h3 class="fw-bold text-secondary">
+                    <span class="lang-en">No Groups Initialized</span>
+                    <span class="lang-ar d-none">لم يتم إنشاء مجموعات</span>
+                </h3>
+                <p class="text-muted mb-4">
+                    <span class="lang-en">This course currently has no active groups assigned to you.</span>
+                    <span class="lang-ar d-none">هذا المقرر لا يحتوي على مجموعات نشطة مسندة إليك حالياً.</span>
+                </p>
+                <a href="{% url 'course_list' %}" class="btn btn-primary rounded-pill px-5 py-2 fw-bold">
+                    <span class="lang-en">Return to Dashboard</span>
+                    <span class="lang-ar d-none">العودة للوحة التحكم</span>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    /* Design tokens */
+    .rounded-30 { border-radius: 30px; }
+    .fw-black { font-weight: 900; }
+    .x-small { font-size: 0.7rem; letter-spacing: 0.5px; }
+
+    /* Hero Banner */
+    .course-detail-header {
+        background: linear-gradient(135deg, #4361ee 0%, #3f37c9 100%);
+        border: none;
+    }
+
+    .stats-glass-pill {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 20px;
+        min-width: 160px;
+        text-align: center;
+    }
+
+    /* Group Card DNA */
+    .group-ops-card {
+        background: white;
+        border-radius: 25px;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        border: 1px solid #f1f4f9 !important;
+    }
+
+    .group-ops-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.08) !important;
+        border-color: rgba(67, 97, 238, 0.2) !important;
+    }
+
+    .group-hex-icon {
+        width: 55px;
+        height: 55px;
+        background: #f0f4ff;
+        color: #4361ee;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+    }
+
+    /* Modern Buttons */
+    .btn-upload-excel {
+        background: #10b981;
+        color: white;
+        border: none;
+        border-radius: 15px;
+        font-weight: 800;
+        transition: 0.3s ease;
+    }
+
+    .btn-upload-excel:hover {
+        background: #059669;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-outline-ops {
+        background: transparent;
+        border: 2px solid #e2e8f0;
+        color: #475569;
+        border-radius: 15px;
+        font-weight: 700;
+        transition: 0.3s;
+    }
+
+    .btn-outline-ops:hover {
+        background: #f8fafc;
+        border-color: #4361ee;
+        color: #4361ee;
+    }
+
+    .bg-soft-primary { background: rgba(67, 97, 238, 0.08); }
+
+    /* Animations */
+    .animate-slide-in {
+        opacity: 0;
+        animation: slideInUp 0.6s ease forwards;
+    }
+
+    @keyframes slideInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* RTL Handling */
+    [dir="rtl"] .ms-2 { margin-right: 0.5rem !important; margin-left: 0 !important; }
+    [dir="rtl"] .me-2 { margin-left: 0.5rem !important; margin-right: 0 !important; }
+</style>
+{% endblock content %}

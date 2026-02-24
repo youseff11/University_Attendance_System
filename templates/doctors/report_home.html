@@ -1,0 +1,250 @@
+{% extends "doctors/base.html" %}
+
+{% block header_title %}
+    <span class="lang-en">Reports & Analytics</span>
+    <span class="lang-ar d-none">التقارير والتحليلات</span>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4" style="background: #f4f7fe; min-height: 100vh;">
+
+    <div class="row mb-5">
+        <div class="col-lg-7">
+            <h1 class="fw-black text-dark display-5 mb-2">
+                <span class="lang-en">Data Analytics</span>
+                <span class="lang-ar d-none">تحليلات البيانات</span>
+            </h1>
+            <p class="text-secondary fs-5">
+                <span class="lang-en">Generate deep-dive attendance reports and monitor warning triggers across your courses.</span>
+                <span class="lang-ar d-none">استخراج تقارير الحضور التفصيلية ومراقبة مؤشرات الإنذار في جميع مقرراتك.</span>
+            </p>
+        </div>
+        <div class="col-lg-5 d-flex align-items-center justify-content-lg-end">
+            <div class="report-badge-status">
+                <div class="pulse-ring"></div>
+                <span class="fw-bold text-uppercase small">
+                    <span class="lang-en">System Live: Data Sync Ready</span>
+                    <span class="lang-ar d-none">النظام متصل: مزامنة البيانات جاهزة</span>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {% for course in courses %}
+        <div class="col-xl-4 col-md-6 animate-fade-in">
+            <div class="report-course-card shadow-sm h-100">
+                <div class="card-content p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="report-icon-box">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <span class="badge bg-soft-dark text-dark fw-bold rounded-pill px-3">{{ course.code }}</span>
+                    </div>
+                    
+                    <h4 class="fw-bold text-dark mb-1">{{ course.name }}</h4>
+                    <p class="text-muted small mb-4">
+                        <span class="lang-en">Course Insight Summary</span>
+                        <span class="lang-ar d-none">ملخص رؤية المقرر</span>
+                    </p>
+                    
+                    <div class="stats-row d-flex mb-4 p-3 rounded-20 bg-light">
+                        <div class="stat-block flex-fill border-end">
+                            <span class="d-block x-small text-uppercase text-muted fw-black">
+                                <span class="lang-en">Groups</span>
+                                <span class="lang-ar d-none">المجموعات</span>
+                            </span>
+                            <span class="h5 mb-0 fw-bold">{{ course.groups.count }}</span>
+                        </div>
+                        <div class="stat-block flex-fill ps-3">
+                            <span class="d-block x-small text-uppercase text-muted fw-black">
+                                <span class="lang-en">Report Status</span>
+                                <span class="lang-ar d-none">حالة التقرير</span>
+                            </span>
+                            <span class="h5 mb-0 fw-bold text-success">
+                                <span class="lang-en">Verified</span>
+                                <span class="lang-ar d-none">مُعتمد</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <a href="{% url 'course_report' course_id=course.id %}" class="btn btn-report-action w-100 py-3">
+                        <span class="lang-en">Open Full Report</span>
+                        <span class="lang-ar d-none">فتح التقرير الكامل</span>
+                        <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                </div>
+                
+                <div class="report-card-footer-progress">
+                    <div class="progress-fill" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="empty-reports-state p-5 bg-white shadow-sm rounded-30 border-2 border-dashed">
+                <i class="fas fa-file-invoice fa-4x text-light mb-4"></i>
+                <h3 class="text-secondary">
+                    <span class="lang-en">No Reports Available</span>
+                    <span class="lang-ar d-none">لا توجد تقارير متاحة</span>
+                </h3>
+                <p class="text-muted">
+                    <span class="lang-en">You need to have courses assigned to your profile to view analytics.</span>
+                    <span class="lang-ar d-none">يجب تعيين مقررات لملفك الشخصي لعرض التحليلات.</span>
+                </p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="strategy-banner p-4 p-md-5 rounded-30 text-white shadow-lg overflow-hidden position-relative">
+                <div class="row align-items-center">
+                    <div class="col-md-8 position-relative" style="z-index: 2;">
+                        <h2 class="fw-bold mb-3">
+                            <span class="lang-en">Mastering the Dashboard?</span>
+                            <span class="lang-ar d-none">هل أتقنت لوحة التحكم؟</span>
+                        </h2>
+                        <p class="lead opacity-75">
+                            <span class="lang-en">You can export data as CSV or PDF for official faculty reviews directly from the detailed course view.</span>
+                            <span class="lang-ar d-none">يمكنك تصدير البيانات كملفات CSV أو PDF للمراجعات الرسمية مباشرة من صفحة تفاصيل المقرر.</span>
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-md-end position-relative" style="z-index: 2;">
+                        <i class="fas fa-file-export fa-5x opacity-25"></i>
+                    </div>
+                </div>
+                <div class="decoration-circle"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Analytics Design System */
+    .rounded-30 { border-radius: 30px; }
+    .rounded-20 { border-radius: 20px; }
+    .fw-black { font-weight: 900; }
+    .x-small { font-size: 0.65rem; letter-spacing: 0.5px; }
+
+    /* Course Card for Reports */
+    .report-course-card {
+        background: white;
+        border-radius: 25px;
+        border: 1px solid #edf2f9;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .report-course-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.08) !important;
+        border-color: #4e73df;
+    }
+
+    .report-icon-box {
+        width: 50px;
+        height: 50px;
+        background: #f0f3ff;
+        color: #4e73df;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 15px;
+        font-size: 1.4rem;
+    }
+
+    .bg-soft-dark { background: #f8f9fc; }
+
+    /* Report Action Button */
+    .btn-report-action {
+        background: #f8f9fc;
+        color: #4e73df;
+        border: 2px solid transparent;
+        border-radius: 15px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 0.85rem;
+        transition: 0.3s;
+    }
+
+    .btn-report-action:hover {
+        background: #4e73df;
+        color: white;
+        box-shadow: 0 10px 20px rgba(78, 115, 223, 0.2);
+    }
+
+    /* Footer Progress bar on card */
+    .report-card-footer-progress {
+        height: 6px;
+        background: #f0f2f5;
+        width: 100%;
+    }
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4e73df, #224abe);
+    }
+
+    /* Status Badge */
+    .report-badge-status {
+        background: white;
+        padding: 12px 25px;
+        border-radius: 50px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        display: flex;
+        align-items: center;
+    }
+
+    .pulse-ring {
+        width: 10px;
+        height: 10px;
+        background: #1cc88a;
+        border-radius: 50%;
+        margin-right: 12px;
+        position: relative;
+    }
+    /* تعديل للهامش عند قلب اللغة */
+    [lang="ar"] .pulse-ring {
+        margin-right: 0;
+        margin-left: 12px;
+    }
+
+    .pulse-ring::after {
+        content: "";
+        position: absolute;
+        width: 100%; height: 100%;
+        background: #1cc88a;
+        border-radius: 50%;
+        animation: ring-pulse 1.5s infinite;
+    }
+
+    @keyframes ring-pulse {
+        0% { transform: scale(1); opacity: 0.8; }
+        100% { transform: scale(3); opacity: 0; }
+    }
+
+    /* Strategy Banner */
+    .strategy-banner {
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    }
+    .decoration-circle {
+        position: absolute;
+        width: 300px; height: 300px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+        top: -100px; right: -50px;
+    }
+
+    /* Animation */
+    .animate-fade-in {
+        animation: fadeIn 0.6s ease backwards;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock content %}

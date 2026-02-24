@@ -1,0 +1,203 @@
+{% extends "doctors/base.html" %}
+
+{% block header_title %}
+    <span class="lang-en">Data Integration: {{ group.name }}</span>
+    <span class="lang-ar d-none">تكامل البيانات: {{ group.name }}</span>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 main-upload-wrapper">
+    
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-8">
+            <h2 class="display-6 fw-extrabold text-gradient mb-0">
+                <i class="fas fa-file-import me-2"></i>
+                <span class="lang-en">Import Student Registry</span>
+                <span class="lang-ar d-none">استيراد سجل الطلاب</span>
+            </h2>
+            <p class="text-secondary mt-2">
+                {{ group.course.name }} ({{ group.course.code }}) — <strong>Group: {{ group.name }}</strong>
+            </p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <a href="{% url 'group_list' course_id=group.course.id %}" class="btn btn-neo-secondary px-4">
+                <i class="fas fa-arrow-left me-2"></i>Back to Groups
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-20 bg-dark text-white h-100">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-4 text-warning">
+                        <i class="fas fa-info-circle me-2"></i>Template Protocol
+                    </h5>
+                    <div class="requirement-item mb-3 d-flex align-items-start">
+                        <div class="req-icon me-3 mt-1"><i class="fas fa-check-double text-success"></i></div>
+                        <div>
+                            <p class="mb-0 fw-bold">Headers Required</p>
+                            <small class="text-white-50">`Student ID`, `Student Name`</small>
+                        </div>
+                    </div>
+                    <div class="requirement-item mb-3 d-flex align-items-start">
+                        <div class="req-icon me-3 mt-1"><i class="fas fa-plus-circle text-info"></i></div>
+                        <div>
+                            <p class="mb-0 fw-bold">Optional Fields</p>
+                            <small class="text-white-50">`GPA` (0.0 to 4.0)</small>
+                        </div>
+                    </div>
+                    <div class="requirement-item mb-4 d-flex align-items-start">
+                        <div class="req-icon me-3 mt-1"><i class="fas fa-file-excel text-primary"></i></div>
+                        <div>
+                            <p class="mb-0 fw-bold">Supported Formats</p>
+                            <small class="text-white-50">.xlsx, .xls, .csv</small>
+                        </div>
+                    </div>
+                    
+                    <div class="alert bg-secondary-subtle text-dark border-0 rounded-15">
+                        <small><i class="fas fa-lightbulb me-2"></i>Ensure headers are in the <strong>first row</strong> of your sheet.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg rounded-20 h-100 overflow-hidden">
+                <div class="card-body p-5">
+                    <form method="post" enctype="multipart/form-data" id="uploadForm">
+                        {% csrf_token %}
+                        
+                        <div class="upload-area mb-4" id="dropZone">
+                            <input type="file" id="excelFile" name="excel_file" required accept=".xlsx, .xls, .csv" hidden>
+                            <div class="upload-icon mb-3">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-primary"></i>
+                            </div>
+                            <h4 class="fw-bold">Drag & Drop Registry</h4>
+                            <p class="text-muted">or <span class="text-primary fw-bold" style="cursor: pointer;">browse files</span> from your computer</p>
+                            <div id="file-name-display" class="badge bg-soft-primary text-primary mt-2 d-none"></div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-neo-primary btn-lg py-3 rounded-15 fw-bold shadow-lg">
+                                <i class="fas fa-sync-alt me-2"></i>Initialize Upload & Linkage
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* CSS DNA - Upload Module */
+    :root {
+        --upload-border: #d1d5db;
+        --upload-hover: #4e73df;
+    }
+
+    .main-upload-wrapper { max-width: 1200px; margin: 0 auto; }
+    .rounded-20 { border-radius: 20px; }
+    .rounded-15 { border-radius: 15px; }
+
+    /* Header Gradient */
+    .text-gradient {
+        background: linear-gradient(to right, #2c3e50, #4e73df);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+    }
+
+    /* Upload Area Styling */
+    .upload-area {
+        border: 2px dashed var(--upload-border);
+        border-radius: 20px;
+        padding: 50px 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        background: #f8faff;
+    }
+
+    .upload-area:hover, .upload-area.drag-over {
+        border-color: var(--upload-hover);
+        background: #f0f3ff;
+    }
+
+    .upload-icon {
+        transition: transform 0.3s ease;
+    }
+
+    .upload-area:hover .upload-icon {
+        transform: translateY(-10px);
+    }
+
+    /* Buttons */
+    .btn-neo-primary {
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+        color: white;
+        border: none;
+        transition: 0.3s;
+    }
+    .btn-neo-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(78, 115, 223, 0.3);
+        color: white;
+    }
+
+    .btn-neo-secondary {
+        background: white;
+        border: 1px solid #e2e8f0;
+        color: #64748b;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: 0.3s;
+    }
+    .btn-neo-secondary:hover {
+        background: #f1f5f9;
+        color: #1e293b;
+    }
+
+    .bg-soft-primary { background-color: rgba(78, 115, 223, 0.1); }
+</style>
+
+<script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('excelFile');
+    const fileNameDisplay = document.getElementById('file-name-display');
+
+    // Trigger input on click
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    // File name display
+    fileInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            fileNameDisplay.innerText = "Selected: " + this.files[0].name;
+            fileNameDisplay.classList.remove('d-none');
+        }
+    });
+
+    // Drag and drop effects
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+        }, false);
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        fileInput.files = dt.files;
+        // Trigger change manually
+        const event = new Event('change');
+        fileInput.dispatchEvent(event);
+    }, false);
+</script>
+{% endblock content %}

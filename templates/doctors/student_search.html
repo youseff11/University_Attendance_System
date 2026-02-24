@@ -1,0 +1,360 @@
+{% extends "doctors/base.html" %}
+
+{% block header_title %}
+    <span class="lang-en">Student Intelligence</span>
+    <span class="lang-ar d-none">ذكاء بيانات الطلاب</span>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4" style="background: #f8faff; min-height: 100vh;">
+    
+    <div class="row mb-5">
+        <div class="col-lg-6">
+            <h1 class="fw-black text-dark display-6 mb-2">
+                <span class="lang-en">Student Intel Hub</span>
+                <span class="lang-ar d-none">مركز استعلامات الطلاب</span>
+            </h1>
+            <p class="text-secondary lead fs-6">
+                <span class="lang-en">Execute deep searches across the student database using ID or Name.</span>
+                <span class="lang-ar d-none">إجراء بحث عميق في قاعدة بيانات الطلاب عبر الرقم الجامعي أو الاسم.</span>
+            </p>
+        </div>
+        <div class="col-lg-6 text-lg-end d-flex align-items-center justify-content-lg-end">
+             <div class="quick-stats-glass shadow-sm">
+                <div class="stat-item border-end px-3 ms-3">
+                    <span class="label text-uppercase small">
+                        <span class="lang-en">Total Students</span>
+                        <span class="lang-ar d-none">إجمالي الطلاب</span>
+                    </span>
+                    <span class="value h4 mb-0 fw-bold d-block text-primary">{{ students|length }}</span>
+                </div>
+                <div class="stat-item px-3 me-3">
+                    <span class="label text-uppercase small">
+                        <span class="lang-en">Status</span>
+                        <span class="lang-ar d-none">الحالة</span>
+                    </span>
+                    <span class="value h4 mb-0 fw-bold d-block text-success">
+                        <span class="lang-en">Live</span>
+                        <span class="lang-ar d-none">مباشر</span>
+                    </span>
+                </div>
+             </div>
+        </div>
+    </div>
+
+    <div class="row mb-5 justify-content-center">
+        <div class="col-xl-8">
+            <div class="search-container shadow-lg">
+                <form method="get" action="{% url 'student_search' %}" class="input-group input-group-lg">
+                    <span class="input-group-text bg-white border-0 ps-4">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text" name="query" id="studentSearchInput" class="form-control border-0 py-4 shadow-none fs-5" 
+                           placeholder="Enter Student ID or Name..." 
+                           data-en="Enter Student ID or Name..."
+                           data-ar="أدخل الرقم الجامعي أو اسم الطالب..."
+                           value="{{ search_query|default:'' }}">
+                    
+                    <button class="btn btn-primary px-5 fw-bold text-uppercase" type="submit">
+                        <span class="lang-en">Execute Search</span>
+                        <span class="lang-ar d-none">تنفيذ البحث</span>
+                    </button>
+                    
+                    {% if search_query %}
+                        <a href="{% url 'student_search' %}" class="btn btn-light d-flex align-items-center px-4">
+                            <i class="fas fa-times me-2 ms-2"></i> 
+                            <span class="lang-en">Clear</span>
+                            <span class="lang-ar d-none">مسح</span>
+                        </a>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {% if searched_student %}
+    <div class="row g-4 animate-in">
+        <div class="col-xl-4 col-lg-5">
+            <div class="card border-0 shadow-sm rounded-30 h-100 overflow-hidden">
+                <div class="profile-header-gradient p-5 text-center text-white">
+                    <div class="avatar-giant shadow-lg mx-auto mb-3">
+                        {{ searched_student.name|slice:":1"|upper }}
+                    </div>
+                    <h3 class="fw-bold mb-1">{{ searched_student.name }}</h3>
+                    <p class="opacity-75 mb-0">
+                        <span class="lang-en">ID: #{{ searched_student.university_id }}</span>
+                        <span class="lang-ar d-none">الرقم الجامعي: #{{ searched_student.university_id }}</span>
+                    </p>
+                </div>
+                <div class="card-body p-4">
+                    <div class="metric-row d-flex justify-content-between mb-4 bg-light p-3 rounded-20">
+                        <div class="text-center w-50 border-end">
+                            <span class="d-block small text-muted text-uppercase fw-bold">
+                                <span class="lang-en">Current GPA</span>
+                                <span class="lang-ar d-none">المعدل التراكمي</span>
+                            </span>
+                            <span class="h4 mb-0 text-dark fw-bold">{{ searched_student.gpa|default:"0.0" }}</span>
+                        </div>
+                        <div class="text-center w-50">
+                            <span class="d-block small text-muted text-uppercase fw-bold">
+                                <span class="lang-en">Enrollments</span>
+                                <span class="lang-ar d-none">المواد المسجلة</span>
+                            </span>
+                            <span class="h4 mb-0 text-dark fw-bold">{{ searched_student.enrolled_courses|length }}</span>
+                        </div>
+                    </div>
+                    
+                    <h6 class="fw-bold text-secondary mb-3 px-2">
+                        <span class="lang-en">Primary Academic Status</span>
+                        <span class="lang-ar d-none">الحالة الأكاديمية الأساسية</span>
+                    </h6>
+                    <div class="status-alert-box {% if searched_student.has_warning %}alert-danger-modern{% else %}alert-success-modern{% endif %} p-4 rounded-25">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas {% if searched_student.has_warning %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} fa-2x me-3 ms-3"></i>
+                            <h5 class="mb-0 fw-bold">
+                                {{ searched_student.warning_status_text }}
+                            </h5>
+                        </div>
+                        <p class="small mb-0 opacity-75">
+                            <span class="lang-en">Recorded Absences: <strong>{{ searched_student.total_absences }}</strong></span>
+                            <span class="lang-ar d-none">غيابات مسجلة: <strong>{{ searched_student.total_absences }}</strong></span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-8 col-lg-7">
+            <div class="card border-0 shadow-sm rounded-30 mb-4">
+                <div class="card-header bg-white border-0 py-4 px-4">
+                    <h5 class="fw-bold mb-0">
+                        <span class="lang-en">Course-Wise Absence Analysis</span>
+                        <span class="lang-ar d-none">تحليل غيابات المقررات</span>
+                    </h5>
+                </div>
+                <div class="table-responsive px-4 pb-4">
+                    <table class="table table-hover align-middle custom-table">
+                        <thead class="text-muted small text-uppercase">
+                            <tr>
+                                <th><span class="lang-en">Course Details</span><span class="lang-ar d-none">تفاصيل المقرر</span></th>
+                                <th class="text-center"><span class="lang-en">Absence</span><span class="lang-ar d-none">الغياب</span></th>
+                                <th><span class="lang-en">Safety Level</span><span class="lang-ar d-none">مستوى الأمان</span></th>
+                                <th class="text-end"><span class="lang-en">Action</span><span class="lang-ar d-none">إجراء</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in searched_student.all_course_absences %}
+                            <tr>
+                                <td>
+                                    <div class="fw-bold text-dark">{{ item.course_name }}</div>
+                                    <div class="small text-muted">{{ item.course_code }}</div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="h6 fw-bold mb-0">{{ item.absences }}</span>
+                                </td>
+                                <td>
+                                    {% if item.is_warning %}
+                                        <div class="progress" style="height: 8px; width: 100px;">
+                                            <div class="progress-bar bg-danger" style="width: 100%"></div>
+                                        </div>
+                                        <small class="text-danger fw-bold mt-1 d-block">
+                                            <span class="lang-en">Critical</span><span class="lang-ar d-none">حرج</span>
+                                        </small>
+                                    {% else %}
+                                        <div class="progress" style="height: 8px; width: 100px;">
+                                            <div class="progress-bar bg-success" style="width: 30%"></div>
+                                        </div>
+                                        <small class="text-success fw-bold mt-1 d-block">
+                                            <span class="lang-en">Safe Zone</span><span class="lang-ar d-none">منطقة آمنة</span>
+                                        </small>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-light rounded-pill px-3">
+                                        <span class="lang-en">Report</span><span class="lang-ar d-none">تقرير</span>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-5">
+                                    <i class="fas fa-shield-check fa-3x text-success opacity-25 mb-3"></i>
+                                    <p class="text-muted fw-bold">
+                                        <span class="lang-en">Pristine Record: 0% Absence.</span>
+                                        <span class="lang-ar d-none">سجل نظيف: 0% غيابات في جميع المواد.</span>
+                                    </p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-30">
+                <div class="card-header bg-white border-0 py-4 px-4">
+                    <h5 class="fw-bold mb-0">
+                        <span class="lang-en">Enrolled Faculty & Courses</span>
+                        <span class="lang-ar d-none">المقررات وأعضاء هيئة التدريس</span>
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for course in searched_student.enrolled_courses %}
+                        <div class="list-group-item border-0 px-4 py-3 d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <div class="course-mini-icon me-3 ms-3">
+                                    <i class="fas fa-university text-primary"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark">{{ course.name }}</div>
+                                    <div class="small text-muted">
+                                        <span class="lang-en">Professor: {{ course.doctor.get_full_name|default:course.doctor.username }}</span>
+                                        <span class="lang-ar d-none">الدكتور: {{ course.doctor.get_full_name|default:course.doctor.username }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="badge bg-light text-dark rounded-pill">{{ course.code }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-lg rounded-30">
+                <div class="card-header bg-white py-4 px-4 border-0 d-flex justify-content-between align-items-center">
+                    <h4 class="fw-bold mb-0">
+                        {% if search_query %}
+                            <span class="lang-en">Results for "{{ search_query }}"</span>
+                            <span class="lang-ar d-none">نتائج البحث عن "{{ search_query }}"</span>
+                        {% else %}
+                            <span class="lang-en">Master Registry</span>
+                            <span class="lang-ar d-none">السجل العام للطلاب</span>
+                        {% endif %}
+                    </h4>
+                    <span class="badge bg-soft-primary text-primary px-3 py-2 fs-6 rounded-pill">
+                        {{ students|length }} 
+                        <span class="lang-en">Students Registered</span>
+                        <span class="lang-ar d-none">طلاب مسجلين</span>
+                    </span>
+                </div>
+                <div class="table-responsive p-0">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4 py-3"><span class="lang-en">Student Identity</span><span class="lang-ar d-none">هوية الطالب</span></th>
+                                <th><span class="lang-en">GPA</span><span class="lang-ar d-none">المعدل</span></th>
+                                <th><span class="lang-en">Risk Assessment</span><span class="lang-ar d-none">تقييم المخاطر</span></th>
+                                <th class="text-end pe-4"><span class="lang-en">Actions</span><span class="lang-ar d-none">الإجراءات</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                            <tr class="student-row">
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm me-3 ms-3">
+                                            {{ student.name|slice:":1"|upper }}
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark fs-6">{{ student.name }}</div>
+                                            <div class="small text-muted">UID: {{ student.university_id }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><div class="fw-bold">{{ student.gpa|default:"N/A" }}</div></td>
+                                <td>
+                                    {% if student.has_warning %}
+                                        <span class="status-pill danger">🚨 <span class="lang-en">Warning</span><span class="lang-ar d-none">تحذير غياب</span></span>
+                                    {% else %}
+                                        <span class="status-pill success">✅ <span class="lang-en">Clear</span><span class="lang-ar d-none">حالة سليمة</span></span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end pe-4">
+                                    <a href="{% url 'student_search' %}?query={{ student.university_id }}" 
+                                       class="btn btn-outline-primary btn-sm rounded-pill px-4 fw-bold">
+                                       <span class="lang-en">Open Profile</span><span class="lang-ar d-none">فتح الملف</span>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-5">
+                                    <div class="opacity-50">
+                                        <i class="fas fa-user-slash fa-4x mb-3"></i>
+                                        <h5 class="lang-en">Registry Empty</h5><h5 class="lang-ar d-none">السجل فارغ</h5>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    /* CSS Toolkit */
+    .rounded-30 { border-radius: 30px; }
+    .rounded-20 { border-radius: 20px; }
+    .rounded-25 { border-radius: 25px; }
+
+    .search-container { background: white; border-radius: 20px; padding: 5px; border: 1px solid #eef2f7; }
+    .profile-header-gradient { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); }
+
+    .avatar-giant {
+        width: 100px; height: 100px; background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px); border: 4px solid white; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: 900; color: white;
+    }
+
+    .quick-stats-glass { background: white; padding: 15px 30px; border-radius: 50px; display: flex; align-items: center; }
+
+    .alert-danger-modern { background: #fff5f5; border: 1px solid #feb2b2; color: #c53030; }
+    .alert-success-modern { background: #f0fff4; border: 1px solid #9ae6b4; color: #276749; }
+
+    .status-pill { padding: 6px 16px; border-radius: 50px; font-size: 0.8rem; font-weight: 700; }
+    .status-pill.danger { background: #ffebeb; color: #e53e3e; }
+    .status-pill.success { background: #ebfbee; color: #38a169; }
+
+    .avatar-sm {
+        width: 45px; height: 45px; background: #4a5568; color: white;
+        border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800;
+    }
+
+    .course-mini-icon { width: 40px; height: 40px; background: #edf2f7; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+
+    .animate-in { animation: slideUp 0.6s ease forwards; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+    .student-row { transition: 0.2s; }
+    .student-row:hover { background-color: #f1f5f9; cursor: pointer; }
+    .bg-soft-primary { background: rgba(78, 115, 223, 0.1); }
+</style>
+
+<script>
+    function updateSearchPlaceholder() {
+        const input = document.getElementById('studentSearchInput');
+        const isAr = document.documentElement.lang === 'ar';
+        if(input) {
+            input.placeholder = isAr ? input.getAttribute('data-ar') : input.getAttribute('data-en');
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', updateSearchPlaceholder);
+    // تفعيل التغيير عند الضغط على زر اللغة
+    document.addEventListener('click', function(e) {
+        if(e.target.closest('.lang-switch')) {
+            setTimeout(updateSearchPlaceholder, 100);
+        }
+    });
+</script>
+{% endblock content %}

@@ -1,0 +1,369 @@
+{% extends "doctors/base.html" %}
+
+{% block header_title %}
+    <span class="lang-en">Attendance Intelligence Portal</span>
+    <span class="lang-ar d-none">بوابة ذكاء الحضور</span>
+{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+<div class="container-fluid py-4 animate__animated animate__fadeIn">
+    
+    <div class="hero-glass-panel mb-5 p-5">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <span class="badge-status-live"></span>
+                    <small class="text-primary-2026 fw-bold tracking-wider uppercase">
+                        <span class="lang-en">Real-time Monitoring Active</span>
+                        <span class="lang-ar d-none">المراقبة الفورية نشطة الآن</span>
+                    </small>
+                </div>
+                <h1 class="display-5 fw-black text-dark mb-3">
+                    <span class="lang-en">Attendance <span class="text-primary-2026">Intelligence</span></span>
+                    <span class="lang-ar d-none">ذكاء <span class="text-primary-2026">التحضير</span> الرقمي</span>
+                </h1>
+                <p class="text-muted lead mb-0">
+                    <span class="lang-en">Advanced tools for lecture management, tracking, and data synthesis.</span>
+                    <span class="lang-ar d-none">أدوات متطورة لإدارة المحاضرات، التتبع، وتحليل البيانات.</span>
+                </p>
+            </div>
+            <div class="col-lg-4 d-none d-lg-block text-center">
+                <div class="hero-visual-icon">
+                    <i class="fas fa-shield-check fa-5x opacity-10 text-primary-2026"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-xl-11">
+            {% for course in courses %}
+            <div class="glass-panel-v2 mb-4">
+                <div class="panel-v2-header d-flex align-items-center" 
+                     data-bs-toggle="collapse" 
+                     data-bs-target="#logs-{{ course.id }}" 
+                     role="button"
+                     aria-expanded="false">
+                    
+                    <div class="course-hex-icon">
+                        <div class="hex-inner">
+                            <span>{{ course.code|slice:":2" }}</span>
+                        </div>
+                    </div>
+
+                    <div class="ms-4 flex-grow-1">
+                        <h4 class="fw-black mb-1 text-dark">{{ course.name }}</h4>
+                        <div class="d-flex gap-3 align-items-center">
+                            <span class="mcc-code">{{ course.code }}</span>
+                        </div>
+                    </div>
+
+                    <div class="d-none d-md-flex gap-5 me-4 text-center">
+                        <div class="stat-mini">
+                            <small class="d-block text-muted fw-bold">
+                                <span class="lang-en">LECTURES</span><span class="lang-ar d-none">المحاضرات</span>
+                            </small>
+                            <span class="fw-black h5">{{ course.lectures.count }}</span>
+                        </div>
+                        <div class="stat-mini">
+                            <small class="d-block text-muted fw-bold">
+                                <span class="lang-en">GROUPS</span><span class="lang-ar d-none">المجموعات</span>
+                            </small>
+                            <span class="fw-black h5">{{ course.groups.count }}</span>
+                        </div>
+                    </div>
+
+                    <div class="expand-chevron">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+
+                <div class="collapse" id="logs-{{ course.id }}">
+                    <div class="panel-v2-body p-4 p-md-5 border-top">
+                        
+                        <div class="mb-5">
+                            <h5 class="fw-black mb-4">
+                                <i class="fas fa-bolt-lightning text-warning me-2"></i>
+                                <span class="lang-en">Initialize New Session</span>
+                                <span class="lang-ar d-none">بدء جلسة تحضير جديدة</span>
+                            </h5>
+                            <div class="row g-3">
+                                {% for group in course.groups.all %}
+                                <div class="col-md-4 col-lg-3">
+                                    <div class="launch-card-modern" 
+                                         data-bs-toggle="modal" 
+                                         data-bs-target="#confirm-session-{{ group.id }}">
+                                         <div class="lc-icon"><i class="fas fa-door-open"></i></div>
+                                         <div class="lc-info">
+                                             <small><span class="lang-en">GROUP</span><span class="lang-ar d-none">المجموعة</span></small>
+                                             <h5 class="fw-black mb-0">{{ group.name }}</h5>
+                                         </div>
+                                         <div class="lc-arrow"><i class="fas fa-arrow-right"></i></div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div>
+                            <h5 class="fw-black mb-4">
+                                <i class="fas fa-list-check text-primary-2026 me-2"></i>
+                                <span class="lang-en">Activity Archives</span>
+                                <span class="lang-ar d-none">سجل النشاطات</span>
+                            </h5>
+                            <div class="table-responsive">
+                                <table class="table-custom-v2">
+                                    <thead>
+                                        <tr>
+                                            <th><span class="lang-en">Date & Time</span><span class="lang-ar d-none">التاريخ والوقت</span></th>
+                                            <th><span class="lang-en">Topic</span><span class="lang-ar d-none">الموضوع</span></th>
+                                            <th><span class="lang-en">Entity</span><span class="lang-ar d-none">المجموعة</span></th>
+                                            <th class="text-center"><span class="lang-en">Records</span><span class="lang-ar d-none">السجلات</span></th>
+                                            <th class="text-end"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for lecture in course.lectures.all %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="date-tile">
+                                                        <span class="dt-m">{{ lecture.date_time|date:"M" }}</span>
+                                                        <span class="dt-d">{{ lecture.date_time|date:"d" }}</span>
+                                                    </div>
+                                                    <span class="ms-3 fw-bold text-dark">{{ lecture.date_time|date:"h:i A" }}</span>
+                                                </div>
+                                            </td>
+                                            <td><span class="fw-bold text-muted">{{ lecture.topic }}</span></td>
+                                            <td><span class="badge bg-light text-dark rounded-pill fw-bold">{{ lecture.group.name }}</span></td>
+                                            <td class="text-center">
+                                                <div class="attendance-progress">
+                                                    <span class="fw-black text-primary-2026">{{ lecture.attendance_records.all.count }}</span>
+                                                    <div class="progress-track"><div class="progress-fill" style="width: 100%"></div></div>
+                                                </div>
+                                            </td>
+                                            <td class="text-end">
+                                                <button class="btn-sync-v2" data-bs-toggle="modal" data-bs-target="#modal-lecture-{{ lecture.id }}">
+                                                    <i class="fas fa-eye me-2"></i>
+                                                    <span class="lang-en">Review</span><span class="lang-ar d-none">عرض</span>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr><td colspan="5" class="text-center py-5 text-muted">
+                                            <span class="lang-en">No records found.</span><span class="lang-ar d-none">لا توجد سجلات حالياً.</span>
+                                        </td></tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            {% for group in course.groups.all %}
+            <div class="modal fade" id="confirm-session-{{ group.id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow rounded-4">
+                        <div class="modal-body p-5 text-center">
+                            <div class="mb-4"><i class="fas fa-rocket fa-3x text-primary-2026"></i></div>
+                            <h4 class="fw-black mb-3">
+                                <span class="lang-en">Ready to Start?</span><span class="lang-ar d-none">هل أنت مستعد للبدء؟</span>
+                            </h4>
+                            <p class="text-muted mb-4">
+                                <span class="lang-en">You are about to initialize a new attendance session for <b>{{ group.name }}</b>.</span>
+                                <span class="lang-ar d-none">أنت على وشك بدء جلسة تحضير جديدة لـ <b>{{ group.name }}</b>.</span>
+                            </p>
+                            <div class="d-flex gap-3">
+                                <button type="button" class="btn btn-light w-100 fw-bold py-3 rounded-3" data-bs-dismiss="modal">
+                                    <span class="lang-en">Cancel</span><span class="lang-ar d-none">إلغاء</span>
+                                </button>
+                                <a href="{% url 'take_attendance' group_id=group.id %}" class="btn btn-primary-2026-custom w-100 fw-bold py-3 rounded-3 text-white text-decoration-none">
+                                    <span class="lang-en">Launch Session</span><span class="lang-ar d-none">بدء الجلسة</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            {% for lecture in course.lectures.all %}
+            <div class="modal fade" id="modal-lecture-{{ lecture.id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg rounded-4">
+                        <div class="modal-header p-4 border-0 bg-light rounded-top-4">
+                            <div>
+                                <h5 class="fw-black mb-0 text-dark">{{ lecture.topic }}</h5>
+                                <small class="text-muted">{{ lecture.date_time|date:"d M Y - h:i A" }} | {{ lecture.group.name }}</small>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4" style="max-height: 60vh; overflow-y: auto;">
+                            <div class="list-group list-group-flush">
+                                {% for record in lecture.attendance_records.all %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-3 border-bottom">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle me-3">{{ record.student.name|slice:":1" }}</div>
+                                        <div>
+                                            <h6 class="mb-0 fw-bold">{{ record.student.name }}</h6>
+                                            <small class="text-muted">Uni ID: {{ record.student.university_id }}</small>
+                                        </div>
+                                    </div>
+                                    {% if record.status == 'P' %}
+                                        <span class="badge bg-success-soft text-success rounded-pill px-3">
+                                            <span class="lang-en">Present</span><span class="lang-ar d-none">حاضر</span>
+                                        </span>
+                                    {% elif record.status == 'L' %}
+                                        <span class="badge bg-warning-soft text-warning rounded-pill px-3">
+                                            <span class="lang-en">Late</span><span class="lang-ar d-none">متأخر</span>
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-danger-soft text-danger rounded-pill px-3">
+                                            <span class="lang-en">Absent</span><span class="lang-ar d-none">غائب</span>
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                {% empty %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-user-slash fa-2x text-muted opacity-50 mb-2"></i>
+                                    <p class="text-muted mb-0">
+                                        <span class="lang-en">No records available for this session.</span>
+                                        <span class="lang-ar d-none">لا توجد سجلات لهذه الجلسة.</span>
+                                    </p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 p-4">
+                            <button type="button" class="btn btn-secondary rounded-3 fw-bold w-100" data-bs-dismiss="modal">
+                                <span class="lang-en">Close</span><span class="lang-ar d-none">إغلاق</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            {% empty %}
+            <div class="text-center py-5">
+                <i class="fas fa-folder-open fa-4x text-muted opacity-25 mb-3"></i>
+                <h4 class="text-muted fw-bold">
+                    <span class="lang-en">No active modules assigned.</span>
+                    <span class="lang-ar d-none">لا توجد مقررات مسندة إليك حالياً.</span>
+                </h4>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary-2026: #4f46e5;
+        --primary-light: #818cf8;
+        --bg-main: #f8fafc;
+        --glass-v2: rgba(255, 255, 255, 0.9);
+    }
+
+    body { background-color: var(--bg-main); font-family: 'Plus Jakarta Sans', sans-serif; }
+    
+    /* RTL adjustments for Arabic */
+    html[lang="ar"] .ms-4 { margin-right: 1.5rem !important; margin-left: 0 !important; }
+    html[lang="ar"] .me-4 { margin-left: 1.5rem !important; margin-right: 0 !important; }
+    html[lang="ar"] .ms-3 { margin-right: 1rem !important; margin-left: 0 !important; }
+    html[lang="ar"] .lc-arrow { margin-right: auto; margin-left: 0; transform: rotate(180deg); }
+    html[lang="ar"] .me-2 { margin-left: 0.5rem !important; margin-right: 0 !important; }
+
+    .hero-glass-panel {
+        background: white;
+        border-radius: 30px;
+        border: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 10px 30px -10px rgba(0,0,0,0.04);
+    }
+
+    .glass-panel-v2 {
+        background: white;
+        border-radius: 24px;
+        border: 1px solid rgba(0,0,0,0.05);
+        overflow: hidden;
+        transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .glass-panel-v2:hover { transform: translateY(-3px); box-shadow: 0 15px 35px -10px rgba(0,0,0,0.08); }
+
+    .panel-v2-header { padding: 20px 30px; }
+    
+    .course-hex-icon {
+        width: 60px; height: 60px; background: var(--primary-2026);
+        clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-weight: 900; font-size: 1.2rem;
+    }
+
+    .mcc-code { 
+        font-size: 0.75rem; font-weight: 900; color: var(--primary-2026); 
+        background: rgba(79, 70, 229, 0.1); padding: 4px 12px; border-radius: 20px; 
+    }
+
+    .expand-chevron {
+        width: 40px; height: 40px; border-radius: 50%; background: #f1f5f9;
+        display: flex; align-items: center; justify-content: center;
+        transition: 0.3s;
+    }
+    [aria-expanded="true"] .expand-chevron { transform: rotate(180deg); background: var(--primary-2026); color: white; }
+
+    .launch-card-modern {
+        background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 20px;
+        padding: 20px; text-decoration: none !important; display: flex; align-items: center;
+        transition: 0.3s; gap: 15px; cursor: pointer; color: inherit;
+    }
+    .launch-card-modern:hover { background: white; border-color: var(--primary-2026); transform: scale(1.02); }
+    .lc-icon { width: 45px; height: 45px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--primary-2026); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+    .lc-arrow { margin-left: auto; color: #cbd5e1; }
+
+    .btn-primary-2026-custom { background: var(--primary-2026); border: none; transition: 0.3s; }
+    
+    .table-custom-v2 { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+    .table-custom-v2 th { color: #64748b; font-weight: 900; text-transform: uppercase; font-size: 0.75rem; padding: 10px 20px; }
+    .table-custom-v2 td { background: #fff; padding: 15px 20px; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; }
+    .table-custom-v2 td:first-child { border-left: 1px solid #f1f5f9; border-radius: 15px 0 0 15px; }
+    .table-custom-v2 td:last-child { border-right: 1px solid #f1f5f9; border-radius: 0 15px 15px 0; }
+
+    .date-tile {
+        background: #1e293b; color: white; width: 45px; border-radius: 12px;
+        padding: 5px; text-align: center; line-height: 1;
+    }
+    .dt-m { display: block; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; opacity: 0.7; }
+    .dt-d { display: block; font-size: 1.1rem; font-weight: 900; }
+
+    .btn-sync-v2 {
+        background: #1e293b; color: white; border: none; padding: 8px 18px;
+        border-radius: 10px; font-weight: 700; font-size: 0.85rem; transition: 0.3s;
+    }
+    .btn-sync-v2:hover { background: var(--primary-2026); transform: translateY(-2px); }
+
+    .avatar-circle {
+        width: 40px; height: 40px; background: var(--primary-2026); color: white;
+        border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        font-weight: 800;
+    }
+    .bg-success-soft { background: #dcfce7; color: #166534; }
+    .bg-danger-soft { background: #fee2e2; color: #991b1b; }
+    .bg-warning-soft { background: #fef9c3; color: #854d0e; }
+
+    .badge-status-live {
+        width: 10px; height: 10px; background: #10b981; border-radius: 50%;
+        animation: pulse-green 2s infinite;
+    }
+
+    @keyframes pulse-green {
+        0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+</style>
+{% endblock content %}

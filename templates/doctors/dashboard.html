@@ -1,0 +1,408 @@
+{% extends "doctors/base.html" %}
+
+{% block header_title %}
+    <span class="lang-en">Academic Command Center</span>
+    <span class="lang-ar d-none">مركز القيادة الأكاديمي</span>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 dashboard-v2">
+    
+    <div class="row mb-4 align-items-end">
+        <div class="col-lg-8 col-md-7">
+            <div class="d-flex align-items-center gap-4">
+                <div class="profile-hex-container" data-bs-toggle="modal" data-bs-target="#changePhotoModal">
+                    <div class="hex-border"></div>
+                    <img src="{{ request.user.get_avatar_url }}" class="hex-avatar" alt="Doctor Profile">
+                    <div class="hex-edit-overlay"><i class="fas fa-camera"></i></div>
+                </div>
+                <div class="user-greeting">
+                    <h1 class="h3 fw-black mb-1 text-dark tracking-tight">
+                        <span class="lang-en">Welcome, Dr. {{ request.user.username }}</span>
+                        <span class="lang-ar d-none">مرحباً، د. {{ request.user.username }}</span>
+                    </h1>
+                    <div class="d-flex gap-2 align-items-center">
+                        <span class="badge-status-online"></span>
+                        <small class="text-muted fw-bold">
+                            <span class="lang-en">Core Engine v4.0 Active</span>
+                            <span class="lang-ar d-none">محرك النظام v4.0 نشط</span>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-5 mt-3 mt-md-0">
+            <div class="glass-clock-card">
+                <div class="clock-icon"><i class="fas fa-clock"></i></div>
+                <div class="clock-data">
+                    <div id="ultra-time" class="time-display">00:00:00</div>
+                    <div id="ultra-date" class="date-display">...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card stat-primary">
+                <div class="stat-icon"><i class="fas fa-book-reader"></i></div>
+                <div class="stat-content">
+                    <p class="stat-label">
+                        <span class="lang-en">Academic Load</span>
+                        <span class="lang-ar d-none">العبء الأكاديمي</span>
+                    </p>
+                    <h2 class="stat-value">{{ num_courses }}</h2>
+                    <span class="stat-sub">{{ num_courses }} <span class="lang-en">Active Modules</span><span class="lang-ar d-none">مقررات نشطة</span></span>
+                </div>
+                <div class="stat-bg-icon"><i class="fas fa-graduation-cap"></i></div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card stat-danger">
+                <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                <div class="stat-content">
+                    <p class="stat-label">
+                        <span class="lang-en">Risk Score</span>
+                        <span class="lang-ar d-none">مؤشر الخطر</span>
+                    </p>
+                    <h2 class="stat-value text-danger">{{ warnings|length }}</h2>
+                    <span class="stat-sub"><span class="lang-en">Flagged Students</span><span class="lang-ar d-none">طلاب قيد الإنذار</span></span>
+                </div>
+                <div class="stat-bg-icon"><i class="fas fa-user-shield"></i></div>
+            </div>
+        </div>
+
+        <div class="col-xl-6 col-md-12">
+            <div class="feed-card shadow-sm border-0">
+                <div class="feed-header">
+                    <h6 class="mb-0 fw-bold">
+                        <i class="fas fa-broadcast-tower me-2 text-primary"></i>
+                        <span class="lang-en">Live Activity Feed</span>
+                        <span class="lang-ar d-none">بث النشاط المباشر</span>
+                    </h6>
+                </div>
+                <div class="feed-body">
+                    {% if last_lecture %}
+                    <div class="live-item">
+                        <div class="live-indicator"><span class="dot-pulse"></span></div>
+                        <div class="live-info">
+                            <span class="live-course d-block fw-bold mb-1">{{ last_lecture.course.name }}</span>
+                            <span class="live-meta">
+                                <span class="lang-en">Group</span><span class="lang-ar d-none">المجموعة</span> {{ last_lecture.group.name }} 
+                                <span class="mx-2 text-muted">|</span> 
+                                <i class="far fa-calendar-alt me-1"></i> {{ last_lecture.date_time|date:"d M Y - H:i" }}
+                            </span>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="empty-feed">
+                        <span class="lang-en">Systems standby. Waiting for activity...</span>
+                        <span class="lang-ar d-none">الأنظمة في وضع الاستعداد. بانتظار نشاط...</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass-panel schedule-panel">
+                <div class="panel-header mb-3">
+                    <h5 class="fw-black mb-0">
+                        <i class="fas fa-calendar-alt text-primary me-2"></i>
+                        <span class="lang-en">Academic Schedule</span>
+                        <span class="lang-ar d-none">الجدول الدراسي الأكاديمي</span>
+                    </h5>
+                </div>
+                <div class="panel-body text-center">
+                    {% if request.user.schedule_image %}
+                        <div class="schedule-img-container">
+                            <img src="{{ request.user.schedule_image.url }}" class="img-fluid rounded-4 shadow-sm" alt="Schedule">
+                        </div>
+                    {% else %}
+                        <div class="py-5">
+                            <i class="fas fa-calendar-times fa-3x text-muted mb-3 opacity-25"></i>
+                            <p class="text-muted fw-bold mb-0">The schedule hasn't been posted yet.</p>
+                            <small class="text-muted opacity-75 lang-ar d-none">لم يتم رفع الجدول الدراسي بعد.</small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-xl-4">
+            <div class="glass-panel h-100">
+                <div class="panel-header d-flex justify-content-between align-items-center">
+                    <h5 class="fw-black mb-0">
+                        <i class="fas fa-shield-alt text-warning me-2"></i>
+                        <span class="lang-en">The Watchtower</span>
+                        <span class="lang-ar d-none">برج المراقبة</span>
+                    </h5>
+                    <span class="badge bg-warning-subtle text-warning rounded-pill">{{ warnings|length }}</span>
+                </div>
+                <div class="panel-body custom-scrollbar">
+                    {% if warnings %}
+                        {% for student in warnings %}
+                        <div class="student-item">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="student-initials">{{ student.name|slice:":1" }}</div>
+                                <div class="ms-3">
+                                    <h6 class="mb-0 fw-bold">{{ student.name }}</h6>
+                                    <small class="text-muted">ID: {{ student.university_id }}</small>
+                                </div>
+                                <div class="ms-auto text-end">
+                                    <span class="absence-count">{{ student.total_absences }}</span>
+                                    <div class="tiny-text">ABS</div>
+                                </div>
+                            </div>
+                            <div class="course-tags">
+                                {% for course in student.warning_courses %}
+                                    <span class="course-badge">{{ course.course_code }}: {{ course.absences }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="all-clear">
+                            <i class="fas fa-check-circle fa-3x text-success mb-3 opacity-25"></i>
+                            <p class="mb-0 text-muted fw-bold">No active threats detected</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-8">
+            <div class="glass-panel h-100">
+                <div class="panel-header">
+                    <h5 class="fw-black mb-0">
+                        <i class="fas fa-project-diagram text-primary me-2"></i>
+                        <span class="lang-en">Course Architecture</span>
+                        <span class="lang-ar d-none">بنية المقررات</span>
+                    </h5>
+                </div>
+                <div class="panel-body">
+                    <div class="row g-3">
+                        {% for course in courses %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="modern-course-card">
+                                <div class="mcc-header">
+                                    <span class="mcc-code">{{ course.code }}</span>
+                                    <div class="mcc-icon"><i class="fas fa-cube"></i></div>
+                                </div>
+                                <div class="mcc-body">
+                                    <h6 class="mcc-title">{{ course.name }}</h6>
+                                    <div class="mcc-stats">
+                                        <span><i class="fas fa-users me-1"></i> {{ course.groups.count }} <span class="lang-en">Entities</span><span class="lang-ar d-none">كيانات</span></span>
+                                    </div>
+                                </div>
+                                <a href="{% url 'group_list' course_id=course.id %}" class="mcc-link">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12 text-center py-5">
+                            <p class="text-muted">No active courses found.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="changePhotoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content custom-modal-26">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="fw-black"><span class="lang-en">Update Identity</span><span class="lang-ar d-none">تحديث الهوية</span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" enctype="multipart/form-data" action="{% url 'update_profile_image' %}">
+                {% csrf_token %}
+                <div class="modal-body py-4">
+                    <div class="upload-container">
+                        <input type="file" name="new_image" id="fileInput" class="d-none" accept="image/*" required>
+                        <label for="fileInput" class="upload-area">
+                            <i class="fas fa-cloud-upload-alt mb-2"></i>
+                            <p class="mb-0 small fw-bold text-muted">Click to browse or drop file</p>
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="submit" class="btn btn-primary-2026 w-100 py-3 rounded-pill fw-bold">SYNC CHANGES</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary-2026: #4f46e5;
+        --primary-light: #818cf8;
+        --danger-2026: #ef4444;
+        --bg-gray: #f1f5f9;
+        --glass: rgba(255, 255, 255, 0.9);
+    }
+
+    body { background-color: #f8fafc; font-family: 'Inter', sans-serif; }
+
+    /* Profile Circular Style */
+    .profile-hex-container {
+        position: relative;
+        width: 80px;
+        height: 80px;
+        cursor: pointer;
+    }
+    .hex-avatar {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        position: relative;
+        z-index: 2;
+    }
+    .hex-border {
+        position: absolute;
+        inset: -4px;
+        background: linear-gradient(45deg, var(--primary-2026), #10b981);
+        border-radius: 50%;
+        z-index: 1;
+        animation: rotate-gradient 4s linear infinite;
+    }
+    .hex-edit-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        z-index: 3;
+        opacity: 0;
+        transition: 0.3s;
+        border-radius: 50%;
+    }
+    .profile-hex-container:hover .hex-edit-overlay { opacity: 1; }
+
+    /* Clock Card */
+    .glass-clock-card {
+        background: white;
+        padding: 15px 25px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+    .time-display { font-size: 1.5rem; font-weight: 900; color: var(--primary-2026); font-family: 'Monaco', monospace; }
+    .date-display { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #64748b; font-weight: 700; }
+    
+    /* Stat Cards */
+    .stat-card {
+        position: relative;
+        padding: 25px;
+        border-radius: 24px;
+        overflow: hidden;
+        transition: 0.3s;
+        height: 100%;
+        background: white;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+    .stat-card:hover { transform: translateY(-5px); box-shadow: 0 20px 30px -10px rgba(0,0,0,0.1); }
+    .stat-primary { border-left: 5px solid var(--primary-2026); }
+    .stat-danger { border-left: 5px solid var(--danger-2026); }
+    .stat-label { font-size: 0.8rem; font-weight: 800; text-transform: uppercase; color: #64748b; margin-bottom: 5px; }
+    .stat-value { font-size: 2.5rem; font-weight: 900; margin-bottom: 0; }
+    .stat-sub { font-size: 0.75rem; font-weight: 600; opacity: 0.8; }
+    .stat-bg-icon { position: absolute; right: -10px; bottom: -10px; font-size: 5rem; opacity: 0.03; transform: rotate(-15deg); }
+
+    /* Feed & Schedule Card */
+    .feed-card, .schedule-panel { background: white; border-radius: 24px; }
+    .feed-header { padding: 20px; border-bottom: 1px solid #f1f5f9; }
+    .feed-body { padding: 20px; }
+    .live-item { display: flex; align-items: center; gap: 15px; background: #f8fafc; padding: 15px; border-radius: 15px; border: 1px dashed #cbd5e1; }
+    .dot-pulse { width: 10px; height: 10px; background: #10b981; border-radius: 50%; display: block; animation: pulse 2s infinite; }
+    
+    .schedule-img-container {
+        max-height: 500px;
+        overflow-y: auto;
+        border-radius: 15px;
+    }
+    .schedule-img-container img {
+        width: 100%;
+        height: auto;
+    }
+
+    /* Watchtower Section */
+    .glass-panel { background: white; border-radius: 28px; padding: 25px; border: 1px solid rgba(0,0,0,0.05); }
+    .panel-header { margin-bottom: 20px; }
+    .panel-body { max-height: 500px; overflow-y: auto; }
+    .student-item { padding: 15px; background: #f8fafc; border-radius: 18px; margin-bottom: 12px; transition: 0.3s; }
+    .student-item:hover { background: #eff6ff; }
+    .student-initials { width: 40px; height: 40px; background: var(--primary-2026); color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 900; }
+    .absence-count { font-size: 1.2rem; font-weight: 900; color: var(--danger-2026); }
+    .course-badge { font-size: 0.65rem; background: #fee2e2; color: #b91c1c; padding: 4px 8px; border-radius: 6px; font-weight: 800; margin-right: 5px; }
+
+    /* Modern Course Card */
+    .modern-course-card {
+        background: #f8fafc;
+        padding: 20px;
+        border-radius: 22px;
+        position: relative;
+        border: 1px solid #e2e8f0;
+        transition: 0.3s;
+    }
+    .modern-course-card:hover { background: white; border-color: var(--primary-2026); transform: scale(1.03); }
+    .mcc-header { display: flex; justify-content: space-between; margin-bottom: 15px; }
+    .mcc-code { font-size: 0.7rem; font-weight: 900; color: var(--primary-2026); background: rgba(79, 70, 229, 0.1); padding: 4px 10px; border-radius: 20px; }
+    .mcc-title { font-weight: 800; font-size: 0.95rem; margin-bottom: 10px; color: #1e293b; }
+    .mcc-link { position: absolute; right: 15px; bottom: 15px; width: 35px; height: 35px; background: #1e293b; color: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: 0.3s; }
+    .mcc-link:hover { background: var(--primary-2026); transform: rotate(-45deg); }
+
+    /* Helpers */
+    .btn-primary-2026 { background: var(--primary-2026); border: none; color: white; }
+    .btn-primary-2026:hover { background: var(--primary-light); }
+    .upload-area { width: 100%; border: 2px dashed #cbd5e1; border-radius: 20px; padding: 40px; text-align: center; cursor: pointer; transition: 0.3s; }
+    .upload-area:hover { border-color: var(--primary-2026); background: #f8fafc; }
+
+    @keyframes rotate-gradient {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+</style>
+
+<script>
+    function updateNeoClock() {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+        
+        document.getElementById('ultra-time').innerText = timeStr;
+        document.getElementById('ultra-date').innerText = dateStr;
+    }
+    setInterval(updateNeoClock, 1000);
+    updateNeoClock();
+
+    // Language Toggle Observer
+    document.addEventListener('DOMContentLoaded', function() {
+        const observer = new MutationObserver(function() {
+            const currentLang = document.documentElement.lang;
+            const isAr = currentLang === 'ar';
+            document.querySelectorAll('.lang-en').forEach(el => el.classList.toggle('d-none', isAr));
+            document.querySelectorAll('.lang-ar').forEach(el => el.classList.toggle('d-none', !isAr));
+        });
+        observer.observe(document.documentElement, { attributes: true });
+    });
+</script>
+{% endblock content %}

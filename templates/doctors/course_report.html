@@ -1,0 +1,269 @@
+{% extends "doctors/base.html" %}
+
+{% block header_title %}
+    <span class="lang-en">Intelligence Report: {{ course.code }}</span>
+    <span class="lang-ar d-none">تقرير الاستخبارات: {{ course.code }}</span>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 main-report-wrapper">
+    
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-7">
+            <h2 class="display-6 fw-extrabold text-dark mb-0">
+                <i class="fas fa-chart-line me-2 ms-2 text-primary"></i>
+                {{ course.name }}
+            </h2>
+            <p class="text-secondary mt-1 fs-6">
+                <span class="badge bg-soft-primary text-primary px-3">{{ course.code }}</span> 
+                | 
+                <span class="lang-en">Academic Performance Analytics</span>
+                <span class="lang-ar d-none">تحليلات الأداء الأكاديمي</span>
+            </p>
+        </div>
+        <div class="col-md-5 text-md-end">
+            <a href="{% url 'report_home' %}" class="btn btn-neo-back px-4 me-2 ms-2">
+                <i class="fas fa-chevron-left me-2 ms-2"></i>
+                <span class="lang-en">Back to Reports</span>
+                <span class="lang-ar d-none">العودة للتقارير</span>
+            </a>
+            <button onclick="window.print()" class="btn btn-neo-primary px-4">
+                <i class="fas fa-print me-2 ms-2"></i>
+                <span class="lang-en">Export PDF</span>
+                <span class="lang-ar d-none">تصدير PDF</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="metric-card shadow-sm border-0 rounded-20 bg-white p-4 d-flex align-items-center">
+                <div class="metric-icon bg-soft-info text-info me-3 ms-3">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <div>
+                    <h6 class="text-muted mb-0 small text-uppercase fw-bold">
+                        <span class="lang-en">Recorded Lectures</span>
+                        <span class="lang-ar d-none">المحاضرات المسجلة</span>
+                    </h6>
+                    <h3 class="fw-extrabold mb-0">{{ total_lectures }}</h3>
+                </div>
+            </div>
+        </div>
+        
+        {% if total_lectures > 0 %}
+        <div class="col-md-4">
+            <div class="metric-card shadow-sm border-0 rounded-20 bg-white p-4 d-flex align-items-center">
+                <div class="metric-icon bg-soft-danger text-danger me-3 ms-3">
+                    <i class="fas fa-user-clock"></i>
+                </div>
+                <div>
+                    <h6 class="text-muted mb-0 small text-uppercase fw-bold">
+                        <span class="lang-en">At Risk Threshold</span>
+                        <span class="lang-ar d-none">حد الخطورة (الغياب)</span>
+                    </h6>
+                    <h3 class="fw-extrabold mb-0">
+                        <span class="lang-en">≥ {{ warning_threshold }} Absences</span>
+                        <span class="lang-ar d-none">≥ {{ warning_threshold }} غيابات</span>
+                    </h3>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if total_lectures == 0 %}
+        <div class="empty-state-card text-center py-5 shadow-sm rounded-25 bg-white border border-dashed">
+            <i class="fas fa-folder-open fa-4x text-light mb-3"></i>
+            <h4 class="text-muted fw-bold">
+                <span class="lang-en">No Attendance Data Found</span>
+                <span class="lang-ar d-none">لا توجد بيانات غياب</span>
+            </h4>
+            <p class="text-secondary">
+                <span class="lang-en">Start recording lectures to generate analytical reports.</span>
+                <span class="lang-ar d-none">ابدأ بتسجيل المحاضرات لإنشاء التقارير التحليلية.</span>
+            </p>
+        </div>
+    {% else %}
+        <div class="card border-0 shadow-lg rounded-25 overflow-hidden">
+            <div class="card-header bg-dark py-3 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="text-white mb-0 fw-bold">
+                    <span class="lang-en">Student Attendance Matrix</span>
+                    <span class="lang-ar d-none">مصفوفة حضور الطلاب</span>
+                </h5>
+                <span class="text-white-50 small">
+                    <span class="lang-en">Last Synced: Just Now</span>
+                    <span class="lang-ar d-none">آخر مزامنة: الآن</span>
+                </span>
+            </div>
+            <div class="table-responsive custom-scrollbar">
+                <table class="table table-hover align-middle mb-0 roster-table">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">
+                                <span class="lang-en">Student Profile</span>
+                                <span class="lang-ar d-none">ملف الطالب</span>
+                            </th>
+                            <th class="text-center">
+                                <span class="lang-en">Total Absences</span>
+                                <span class="lang-ar d-none">إجمالي الغياب</span>
+                            </th>
+                            <th>
+                                <span class="lang-en">Attendance Health</span>
+                                <span class="lang-ar d-none">معدل الحضور</span>
+                            </th>
+                            <th>
+                                <span class="lang-en">Risk Status</span>
+                                <span class="lang-ar d-none">حالة الخطورة</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in student_data %}
+                        <tr class="report-row {% if student.is_warning %}row-danger-bg{% endif %}">
+                            <td class="ps-4 py-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="report-avatar me-3 ms-3">
+                                        {{ student.name|slice:":1" }}
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark">{{ student.name }}</div>
+                                        <div class="small text-muted text-uppercase">ID: #{{ student.id }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <span class="h5 fw-extrabold mb-0 {% if student.is_warning %}text-danger{% else %}text-primary{% endif %}">
+                                    {{ student.absent_count }}
+                                </span>
+                            </td>
+                            <td style="min-width: 200px;">
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1 rounded-pill shadow-sm" style="height: 10px; background: #eaedf2;">
+                                        <div class="progress-bar {% if student.is_warning %}bg-danger{% else %}bg-success{% endif %}" 
+                                             role="progressbar" 
+                                             style="width: {{ student.attendance_percentage }}%">
+                                        </div>
+                                    </div>
+                                    <span class="ms-3 me-3 fw-bold text-muted small">{{ student.attendance_percentage }}%</span>
+                                </div>
+                            </td>
+                            <td>
+                                {% if student.is_warning %}
+                                    <span class="status-badge danger">
+                                        <i class="fas fa-exclamation-circle me-1 ms-1"></i> 
+                                        <span class="lang-en">HIGH RISK</span>
+                                        <span class="lang-ar d-none">خطورة عالية</span>
+                                    </span>
+                                {% else %}
+                                    <span class="status-badge success">
+                                        <i class="fas fa-check-circle me-1 ms-1"></i> 
+                                        <span class="lang-en">STABLE</span>
+                                        <span class="lang-ar d-none">مستقر</span>
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    /* CSS Kit - Report Intelligence */
+    :root {
+        --primary-accent: #283891;
+        --danger-glow: #ff416c;
+        --success-glow: #00b09b;
+    }
+
+    .main-report-wrapper { max-width: 1400px; margin: 0 auto; }
+    .rounded-25 { border-radius: 25px; }
+    .rounded-20 { border-radius: 20px; }
+    .fw-extrabold { font-weight: 800; }
+
+    /* Metric Cards */
+    .metric-card { 
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        border: 1px solid #f1f4f9 !important;
+    }
+    .metric-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important; }
+    
+    .metric-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    /* Table Design */
+    .roster-table thead th {
+        background: #f8fafc;
+        color: #475569;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 18px 15px;
+        border-bottom: 2px solid #edf2f7;
+    }
+
+    .report-row { transition: background 0.2s; border-bottom: 1px solid #f8fafc; }
+    .report-row:hover { background: #f1f5f9; }
+    .row-danger-bg { background-color: #fffafb; }
+
+    .report-avatar {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        color: var(--primary-accent);
+    }
+
+    /* Status Badges */
+    .status-badge {
+        padding: 6px 14px;
+        border-radius: 50px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        letter-spacing: 0.3px;
+    }
+    .status-badge.danger { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+    .status-badge.success { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+
+    /* Neo Buttons */
+    .btn-neo-back { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; font-weight: 600; color: #64748b; transition: 0.3s; }
+    .btn-neo-back:hover { background: #f8fafc; color: var(--primary-accent); }
+    
+    .btn-neo-primary { background: var(--primary-accent); color: white; border-radius: 12px; font-weight: 600; border: none; transition: 0.3s; }
+    .btn-neo-primary:hover { background: #1a1c2e; color: white; box-shadow: 0 4px 12px rgba(40, 56, 145, 0.2); transform: scale(1.02); }
+
+    .bg-soft-info { background: rgba(13, 202, 240, 0.1); }
+    .bg-soft-danger { background: rgba(220, 53, 69, 0.1); }
+    .bg-soft-primary { background: rgba(40, 56, 145, 0.1); }
+
+    /* RTL Handling */
+    [dir="rtl"] .ms-3 { margin-right: 1rem !important; margin-left: 0 !important; }
+    [dir="rtl"] .me-3 { margin-left: 1rem !important; margin-right: 0 !important; }
+
+    /* Print Optimization */
+    @media print {
+        @page { size: landscape; }
+        .btn, nav, .btn-neo-back, .btn-neo-primary { display: none !important; }
+        .main-report-wrapper { width: 100%; max-width: none; }
+        .card { box-shadow: none !important; border: 1px solid #ddd !important; }
+        body { background: white !important; }
+    }
+</style>
+{% endblock content %}

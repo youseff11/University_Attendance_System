@@ -1,0 +1,230 @@
+{% extends "doctors/base.html" %}
+
+{% block header_title %}
+    <span class="lang-en">Academic Staff</span>
+    <span class="lang-ar d-none">أعضاء هيئة التدريس</span>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4" style="background: #f4f7fe; min-height: 100vh;">
+    
+    <div class="row mb-5 align-items-center">
+        <div class="col-md-7">
+            <h1 class="fw-bold text-dark display-5 mb-2">
+                <span class="lang-en">Academic Faculty</span>
+                <span class="lang-ar d-none">الهيئة الأكاديمية</span>
+            </h1>
+            <p class="text-secondary fs-5">
+                <span class="lang-en">Total verified experts: <span class="text-primary fw-bold">{{ doctors|length }}</span></span>
+                <span class="lang-ar d-none">إجمالي الأساتذة المعتمدين: <span class="text-primary fw-bold">{{ doctors|length }}</span></span>
+            </p>
+        </div>
+        <div class="col-md-5">
+            <div class="search-bar-modern shadow-sm">
+                <i class="fas fa-search mx-2"></i>
+                <input type="text" id="doctorSearch" class="form-control border-0" 
+                       placeholder="Search by name..." data-placeholder-en="Search by name..." data-placeholder-ar="بحث بالاسم أو المقرر...">
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4" id="doctorsGrid">
+        {% for doctor in doctors %}
+        <div class="col-xl-4 col-lg-6 doctor-card-wrapper">
+            <div class="neo-doctor-card h-100">
+                <div class="card-inner shadow-lg rounded-25 overflow-hidden bg-white border-0">
+                    
+                    <div class="doctor-profile-header p-4 d-flex align-items-center">
+                        <div class="avatar-wrapper me-3 ms-3">
+                            <div class="avatar-circle overflow-hidden">
+                                {% if doctor.image %}
+                                    <img src="{{ doctor.image.url }}" alt="{{ doctor.username }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                {% else %}
+                                    {{ doctor.username|slice:":1"|upper }}
+                                {% endif %}
+                                <div class="online-status"></div>
+                            </div>
+                        </div>
+                        <div class="doctor-info-main">
+                            <h5 class="mb-0 fw-bold text-dark">
+                                <span class="lang-en">Dr. {{ doctor.get_full_name|default:doctor.username }}</span>
+                                <span class="lang-ar d-none">د. {{ doctor.get_full_name|default:doctor.username }}</span>
+                            </h5>
+                            <span class="badge bg-soft-primary text-primary mt-1">
+                                <span class="lang-en">Verified Instructor</span>
+                                <span class="lang-ar d-none">محاضر معتمد</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="doctor-stats-bar px-4 py-3 bg-light d-flex justify-content-around">
+                        <div class="text-center">
+                            <span class="d-block fw-bold text-primary">{{ doctor.course_count }}</span>
+                            <small class="text-muted uppercase x-small">
+                                <span class="lang-en">COURSES</span>
+                                <span class="lang-ar d-none">المقررات</span>
+                            </small>
+                        </div>
+                        <div class="vr"></div>
+                        <div class="text-center">
+                            <span class="d-block fw-bold text-dark">
+                                <span class="lang-en">Active</span>
+                                <span class="lang-ar d-none">نشط</span>
+                            </span>
+                            <small class="text-muted uppercase x-small">
+                                <span class="lang-en">STATUS</span>
+                                <span class="lang-ar d-none">الحالة</span>
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="doctor-courses-body p-4">
+                        <p class="section-title small fw-bold text-secondary mb-3">
+                            <i class="fas fa-book-reader me-2 ms-2"></i>
+                            <span class="lang-en">TEACHING SPECIALIZATION</span>
+                            <span class="lang-ar d-none">التخصصات التدريسية</span>
+                        </p>
+                        <div class="course-tags-container custom-scrollbar">
+                            {% if doctor.taught_courses %}
+                                {% for course in doctor.taught_courses %}
+                                <div class="course-chip">
+                                    <span class="code">{{ course.code }}</span>
+                                    <span class="name mx-2">{{ course.name }}</span>
+                                    <span class="groups-count">
+                                        {{ course.groups_count }} 
+                                        <span class="lang-en">groups</span>
+                                        <span class="lang-ar d-none">مجموعات</span>
+                                    </span>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="empty-courses text-center py-2">
+                                    <span class="text-muted italic small">
+                                        <span class="lang-en">No courses currently assigned.</span>
+                                        <span class="lang-ar d-none">لا توجد مقررات مسندة حالياً.</span>
+                                    </span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="doctor-card-footer p-3 bg-white border-top text-center">
+                        <button class="btn btn-link btn-sm text-decoration-none text-primary fw-bold">
+                            <i class="far fa-envelope me-1 ms-1"></i> 
+                            <span class="lang-en">Contact Information</span>
+                            <span class="lang-ar d-none">معلومات التواصل</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="glass-empty shadow-sm p-5 rounded-25 bg-white">
+                <i class="fas fa-user-tie fa-4x text-light-emphasis opacity-25 mb-3"></i>
+                <h3 class="lang-en">No specialists found.</h3>
+                <h3 class="lang-ar d-none">لم يتم العثور على أساتذة.</h3>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .rounded-25 { border-radius: 25px; }
+    .x-small { font-size: 0.65rem; font-weight: 800; letter-spacing: 1px; }
+
+    /* Search Bar */
+    .search-bar-modern {
+        background: white;
+        border-radius: 50px;
+        padding: 5px 20px;
+        display: flex;
+        align-items: center;
+        border: 2px solid transparent;
+        transition: 0.3s;
+    }
+    .search-bar-modern:focus-within { border-color: #4e73df; }
+    .search-bar-modern input:focus { box-shadow: none; }
+
+    /* Card Effects */
+    .neo-doctor-card {
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .neo-doctor-card:hover {
+        transform: translateY(-12px);
+    }
+
+    /* Avatar */
+    .avatar-circle {
+        width: 65px;
+        height: 65px;
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+        color: white;
+        font-size: 1.8rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 20px;
+        position: relative;
+    }
+    .online-status {
+        width: 15px; height: 15px; background: #1cc88a;
+        border: 3px solid white; border-radius: 50%;
+        position: absolute; bottom: -2px; right: -2px; z-index: 2;
+    }
+
+    /* Course Chips */
+    .course-tags-container { max-height: 180px; overflow-y: auto; }
+    .course-chip {
+        display: flex; align-items: center; background: #f8f9fc;
+        border-radius: 12px; padding: 10px; margin-bottom: 8px;
+        border-left: 4px solid #4e73df; transition: 0.2s;
+    }
+    html[lang="ar"] .course-chip { border-left: 0; border-right: 4px solid #4e73df; }
+    
+    .course-chip:hover { background: #eaecf4; transform: scale(1.01); }
+    .course-chip .code { font-weight: 800; font-size: 0.75rem; color: #4e73df; min-width: 60px; }
+    .course-chip .name { font-size: 0.85rem; color: #3a3b45; flex-grow: 1; }
+    .course-chip .groups-count { font-size: 0.7rem; background: #e2e6ea; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
+
+    .bg-soft-primary { background: rgba(78, 115, 223, 0.1); }
+    
+    @keyframes cardFadeIn {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .doctor-card-wrapper { animation: cardFadeIn 0.6s ease forwards; }
+
+    /* Custom Scrollbar */
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #d1d3e2; border-radius: 10px; }
+</style>
+
+<script>
+    // Real-time Search Filter
+    document.getElementById('doctorSearch').addEventListener('input', function(e) {
+        let searchTerm = e.target.value.toLowerCase();
+        let cards = document.querySelectorAll('.doctor-card-wrapper');
+        
+        cards.forEach(card => {
+            let text = card.innerText.toLowerCase();
+            card.style.display = text.includes(searchTerm) ? 'block' : 'none';
+        });
+    });
+
+    // Placeholder translation observer
+    function updatePlaceholders() {
+        const searchInput = document.getElementById('doctorSearch');
+        const isAr = document.documentElement.lang === 'ar';
+        if(searchInput) {
+            searchInput.placeholder = isAr ? searchInput.getAttribute('data-placeholder-ar') : searchInput.getAttribute('data-placeholder-en');
+        }
+    }
+
+    // Run on load and whenever language might change
+    window.addEventListener('DOMContentLoaded', updatePlaceholders);
+    // If your base.html toggleLanguage doesn't refresh, call this in the toggle function
+</script>
+{% endblock content %}
