@@ -3,7 +3,7 @@
 from rest_framework import serializers
 from django.db.models import Count, Q 
 from .models import Student, AttendanceRecord, Course, Lecture, Group, AttendanceStatus
-
+from .models import Announcement
 # --- ثابت حد الإنذار (WARNING_THRESHOLD)
 WARNING_THRESHOLD = 3 # حد الإنذار: 3 غيابات
 
@@ -87,3 +87,11 @@ class StudentProfileSerializer(serializers.ModelSerializer):
     def get_recent_attendance(self, obj):
         recent_records = obj.attendance_records.all().order_by('-lecture__date_time')[:20]
         return AttendanceRecordSerializer(recent_records, many=True).data
+
+class AnnouncementSerializer(serializers.ModelSerializer):
+    doctor_name = serializers.ReadOnlyField(source='doctor.username')
+    
+    class Meta:
+        model = Announcement
+        # 🎯 ضفنا حقل 'attachment_file' هنا
+        fields = ('id', 'doctor_name', 'title', 'description', 'image', 'attachment_file', 'created_at')

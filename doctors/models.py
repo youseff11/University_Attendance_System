@@ -148,3 +148,20 @@ class AttendanceRecord(models.Model):
         verbose_name = 'Attendance Record'
         verbose_name_plural = 'Attendance Records'
         unique_together = ('lecture', 'student')
+
+class Announcement(models.Model):
+    doctor = models.ForeignKey(DoctorProfile, on_delete=models.CASCADE, related_name='announcements', verbose_name="Doctor")
+    title = models.CharField(max_length=200, verbose_name="Title")
+    description = models.TextField(verbose_name="Description")
+    image = models.ImageField(upload_to='announcements/images/', null=True, blank=True, verbose_name="Announcement Image")
+    # 🎯 الحقل الجديد لرفع الملفات (PDF, DOCX, etc.)
+    attachment_file = models.FileField(upload_to='announcements/files/', null=True, blank=True, verbose_name="Attachment File")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Announcement'
+        verbose_name_plural = 'Announcements'
+
+    def __str__(self):
+        return f"{self.title} - Dr. {self.doctor.username}"

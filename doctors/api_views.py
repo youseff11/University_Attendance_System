@@ -3,17 +3,11 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
-from .models import Student
-from .serializers import StudentProfileSerializer
-
-# ⚠️ ملاحظة: هذا مجرد مثال. في بيئة العمل الحقيقية، ستحتاج إلى نظام مصادقة آمن (مثل Token Auth)
-# Django REST Framework يُسهّل عليك استخدام Token Authentication.
-
-# --- 1. مصادقة وتسجيل الدخول (Login - يتطلب المزيد من الإعداد لـ DRF)
-# لتبسيط العملية الآن، سنفترض أن الطالب يُرسل الـ university_id كمعرف له
+from django.db.models import Q
+from .models import Student, DoctorProfile, Announcement, Course
+from .serializers import StudentProfileSerializer, AnnouncementSerializer
 
 class StudentProfileView(APIView):
-    # ⚠️ في الواقع، يجب استخدام permissions.IsAuthenticated
     permission_classes = [permissions.AllowAny] 
     
     def get(self, request, university_id, format=None):
@@ -22,7 +16,6 @@ class StudentProfileView(APIView):
         مثال: /api/student/profile/123456/
         """
         try:
-            # يجب أن يكون university_id حقل فريد (Unique) ليعمل البحث بشكل صحيح
             student = Student.objects.get(university_id=university_id)
         except Student.DoesNotExist:
             return Response(
@@ -30,6 +23,37 @@ class StudentProfileView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        # 🎯 استخدم السيريالايزر لتحويل البيانات
         serializer = StudentProfileSerializer(student)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class StudentAnnouncementsView(APIView):
+    """
+    خاص بتطبيق الـ Flutter: جلب الإعلانات الخاصة بالدكاترة المسجل معهم الطالب فقط
+    مسار الـ API: /api/student/announcements/123456/
+    """
+    permission_classes = [permissions.AllowAny]
+    
+    def get(self, request, university_id, format=None):
+        try:
+            student = Student.objects.get(university_id=university_id)
+        except Student.DoesNotExist:
+            return Response(
+                {"detail": "Student not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+            
+        # 🎯 اللوجيك الصحيح بناءً على علاقات الموديلز في مشروعك:
+        # بنجيب المقررات اللي الطالب مسجل في مجموعاتها، ومنها بنطلع بالدكاترة المشرفين عليها
+        registered_courses = Course.objects.filter(groups__students=student).distinct()
+        
+        # بنجيب الدكاترة المشرفين على هذه المقررات
+        # ملاحظة: الـ related_name الصحيح على حقل doctor في موديل Course هو 'courses_taught'
+        doctors = DoctorProfile.objects.filter(courses_taught__in=registered_courses).distinct()
+        
+        # بنجيب الإعلانات الخاصة بالدكاترة دول بس والأحدث أولاً
+        announcements = Announcement.objects.filter(doctor__in=doctors).order_by('-created_at')
+        
+        # نمرر الـ context عشان روابط الصور والملفات تطلع كاملة بالـ IP والـ Port
+        serializer = AnnouncementSerializer(announcements, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)

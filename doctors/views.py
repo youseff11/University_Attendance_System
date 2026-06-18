@@ -21,6 +21,7 @@ from django.http import HttpResponse
 from django.template.loader import get_template
 from xhtml2pdf import pisa
 from .models import Lecture
+from .models import Announcement
 # ==============================================
 # 0. دوال مساعدة (Helper Functions)
 # ==============================================
@@ -737,3 +738,30 @@ def export_attendance_pdf(request, lecture_id):
         return response
     
     return HttpResponse("Error generating PDF", status=400)
+
+@login_required
+def create_announcement(request):
+    if not is_doctor(request.user):
+        messages.error(request, 'غير مسموح لك بالوصول إلى هذه الصفحة.')
+        return redirect('dashboard')
+        
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        image = request.FILES.get('image') 
+        attachment_file = request.FILES.get('attachment_file') # 🎯 استقبال الملف هنا
+        
+        if title and description:
+            Announcement.objects.create(
+                doctor=request.user,
+                title=title,
+                description=description,
+                image=image,
+                attachment_file=attachment_file # 🎯 حفظ الملف في الداتابيز
+            )
+            messages.success(request, 'تم نشر الإعلان وبثه للطلاب بنجاح.')
+            return redirect('dashboard')
+        else:
+            messages.error(request, 'يرجى كتابة عنوان الإعلان وتفاصيله.')
+            
+    return render(request, 'doctors/create_announcement.html')

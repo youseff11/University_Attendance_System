@@ -1,0 +1,203 @@
+{% extends "doctors/base.html" %}
+{% load static %}
+
+{% block title %}
+    <span class="en-text">Create Announcement</span>
+    <span class="ar-text d-none">إنشاء إعلان جديد</span>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4" style="max-width: 1000px;">
+    <div class="mb-4">
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary px-3 py-2 border-0 shadow-sm" style="border-radius: 10px; background-color: #fff;">
+            <i class="fa-solid fa-arrow-left me-2"></i>
+            <span class="en-text">Back to Dashboard</span>
+            <span class="ar-text d-none">العودة للوحة التحكم</span>
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm" style="border-radius: 20px; background: #ffffff; overflow: hidden;">
+        <div class="card-header border-0 p-4 text-white" style="background: var(--primary-gradient);">
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 55px; height: 55px; min-width: 55px;">
+                    <i class="fa-solid fa-bullhorn fs-4 text-gradient" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+                </div>
+                <div>
+                    <h4 class="fw-bold mb-1">
+                        <span class="en-text">New Academic Announcement</span>
+                        <span class="ar-text d-none">إعلان أكاديمي جديد</span>
+                    </h4>
+                    <p class="mb-0 text-white-50 small">
+                        <span class="en-text">Publish updates, images, or documents (PDF/Word) directly to your students.</span>
+                        <span class="ar-text d-none">انشر التحديثات، الصور، أو الملفات والمستندات مباشرة لطلابك.</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-body p-4 p-md-5">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show border-0 shadow-sm mb-4" role="alert" style="border-radius: 12px;">
+                        <i class="fa-solid {% if message.tags == 'error' %}fa-circle-xmark{% else %}fa-circle-check{% endif %} me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-secondary mb-2">
+                        <i class="fa-solid fa-heading me-1 small-icon"></i>
+                        <span class="en-text">Announcement Title</span>
+                        <span class="ar-text d-none">عنوان الإعلان</span>
+                        <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" name="title" class="form-control form-control-lg custom-input shadow-none" placeholder="e.g., Lecture Slides & Assignment 2" required>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-secondary mb-2">
+                        <i class="fa-solid fa-align-left me-1 small-icon"></i>
+                        <span class="en-text">Description / Content</span>
+                        <span class="ar-text d-none">محتوى وتفاصيل الإعلان</span>
+                        <span class="text-danger">*</span>
+                    </label>
+                    <textarea name="description" class="form-control custom-textarea shadow-none" rows="5" placeholder="Type your message here..." required></textarea>
+                </div>
+
+                <div class="row g-4 mb-5">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-secondary mb-2">
+                            <i class="fa-solid fa-image me-1 small-icon"></i>
+                            <span class="en-text">Attachment Image (Optional)</span>
+                            <span class="ar-text d-none">إرفاق صورة (اختياري)</span>
+                        </label>
+                        <div class="upload-zone p-3 text-center border-dashed rounded-4 position-relative bg-light">
+                            <input type="file" name="image" id="announcement-image" class="form-control position-absolute opacity-0 top-0 start-0 w-100 h-100 cursor-pointer" accept="image/*">
+                            <div id="img-prompt">
+                                <i class="fa-regular fa-image fs-3 text-muted mb-2"></i>
+                                <p class="mb-0 small fw-semibold text-dark">
+                                    <span class="en-text">Upload Image</span>
+                                    <span class="ar-text d-none">رفع صورة الإعلان</span>
+                                </p>
+                            </div>
+                            <div id="image-preview-container" class="d-none position-relative">
+                                <img id="image-preview" src="#" alt="Preview" class="img-fluid rounded-3 shadow-sm" style="max-height: 120px; object-fit: contain;">
+                                <button type="button" id="remove-img-btn" class="btn btn-danger btn-sm rounded-circle position-absolute top-0 end-0 translate-middle shadow"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-secondary mb-2">
+                            <i class="fa-solid fa-file-lines me-1 small-icon"></i>
+                            <span class="en-text">Document File (Optional)</span>
+                            <span class="ar-text d-none">إرفاق ملف/مستند (اختياري)</span>
+                        </label>
+                        <div class="upload-zone p-3 text-center border-dashed rounded-4 position-relative bg-light">
+                            <input type="file" name="attachment_file" id="announcement-file" class="form-control position-absolute opacity-0 top-0 start-0 w-100 h-100 cursor-pointer" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar">
+                            <div id="file-prompt">
+                                <i class="fa-regular fa-file-pdf fs-3 text-muted mb-2"></i>
+                                <p class="mb-0 small fw-semibold text-dark">
+                                    <span class="en-text">Upload Document (PDF, Word...)</span>
+                                    <span class="ar-text d-none">رفع مستند (PDF، وورد...)</span>
+                                </p>
+                            </div>
+                            <div id="file-preview-container" class="d-none position-relative p-2 bg-white rounded-3 shadow-sm">
+                                <i class="fa-solid fa-file-arrow-up text-primary fs-3 mb-2"></i>
+                                <p id="file-name-text" class="mb-0 small fw-bold text-truncate text-dark px-2"></p>
+                                <button type="button" id="remove-file-btn" class="btn btn-danger btn-sm rounded-circle position-absolute top-0 end-0 translate-middle shadow"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3 justify-content-end pt-3 border-top">
+                    <a href="{% url 'dashboard' %}" class="btn btn-light px-4 py-2 fw-semibold text-secondary" style="border-radius: 12px; border: 1px solid #e2e8f0;">
+                        <span class="en-text">Cancel</span>
+                        <span class="ar-text d-none">إلغاء</span>
+                    </a>
+                    <button type="submit" class="btn btn-primary px-5 py-2 fw-bold shadow-sm d-flex align-items-center gap-2" style="border-radius: 12px; background: var(--primary-gradient); border: none;">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        <span class="en-text">Broadcast Now</span>
+                        <span class="ar-text d-none">بث ونشر الآن</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .border-dashed { border: 2px dashed #cbd5e1; transition: all 0.3s ease; }
+    .upload-zone:hover { border-color: #4e73df; background-color: #f8fafc !important; }
+    .cursor-pointer { cursor: pointer; }
+    .custom-input, .custom-textarea { border: 1px solid #cbd5e1; border-radius: 12px; padding: 12px 16px; font-size: 1rem; transition: all 0.3s ease; }
+    .custom-input:focus, .custom-textarea:focus { border-color: #4e73df; box-shadow: 0 0 0 3px rgba(78, 115, 223, 0.15) !important; }
+    .custom-textarea { resize: none; }
+    .small-icon { width: 20px; color: #94a3b8; }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // إدارة معاينة الصورة
+        const imgInput = document.getElementById('announcement-image');
+        const imgPrompt = document.getElementById('img-prompt');
+        const imgPreviewCtx = document.getElementById('image-preview-container');
+        const imgPreview = document.getElementById('image-preview');
+        const removeImg = document.getElementById('remove-img-btn');
+
+        imgInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function() {
+                    imgPreview.setAttribute('src', this.result);
+                    imgPrompt.classList.add('d-none');
+                    imgPreviewCtx.classList.remove('d-none');
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        removeImg.addEventListener('click', function(e) {
+            e.preventDefault(); imgInput.value = '';
+            imgPreviewCtx.classList.add('d-none'); imgPrompt.classList.remove('d-none');
+        });
+
+        // 🎯 إدارة معاينة اسم الملف الجديد
+        const fileInput = document.getElementById('announcement-file');
+        const filePrompt = document.getElementById('file-prompt');
+        const filePreviewCtx = document.getElementById('file-preview-container');
+        const fileNameText = document.getElementById('file-name-text');
+        const removeFile = document.getElementById('remove-file-btn');
+
+        fileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                fileNameText.innerText = file.name;
+                filePrompt.classList.add('d-none');
+                filePreviewCtx.classList.remove('d-none');
+            }
+        });
+
+        removeFile.addEventListener('click', function(e) {
+            e.preventDefault(); fileInput.value = '';
+            filePreviewCtx.classList.add('d-none'); filePrompt.classList.remove('d-none');
+        });
+
+        // Bootstrap 5 validation
+        const forms = document.querySelectorAll('.needs-validation');
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) { event.preventDefault(); event.stopPropagation(); }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    });
+</script>
+{% endblock %}

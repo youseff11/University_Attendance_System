@@ -1,13 +1,14 @@
+# doctors/urls.py
 from django.urls import path
 from . import views
+from . import api_views
 from django.contrib.auth import views as auth_views
 from .views import GroupAutocomplete, StudentAutocomplete
-from .api_views import StudentProfileView
 
 urlpatterns = [
     # 1. لوحة التحكم الرئيسية
     path('', views.doctor_dashboard, name='dashboard'), 
-    path('doctor/dashboard/', views.doctor_dashboard, name='doctor_dashboard'), # مسار إضافي للاحتياط
+    path('doctor/dashboard/', views.doctor_dashboard, name='doctor_dashboard'),
 
     # 2. إدارة الدخول والخروج (Authentication)
     path('login/', auth_views.LoginView.as_view(template_name='doctors/login.html'), name='login'),
@@ -31,7 +32,6 @@ urlpatterns = [
     path('attendance/group/<int:group_id>/take/', views.take_attendance, name='take_attendance'),
 
     # 6. ميزات بصمة الوجه (Face Recognition)
-    # ملاحظة: هذا المسار هو الذي يتم استدعاؤه من الـ JavaScript في صفحة الكاميرا
     path('attendance/verify-face/', views.face_attendance_check, name='face_attendance_check'),
     path('attendance/sync-aws/', views.index_students_to_aws, name='sync_students_aws'),
 
@@ -45,10 +45,13 @@ urlpatterns = [
     path('update-schedule/', views.update_schedule_image, name='update_schedule_image'),
 
     # 9. أدوات البحث التلقائي (Autocomplete)
-    path('group-autocomplete/', GroupAutocomplete.as_view(), name='group_autocomplete'),
+    path('group-autocomplete/', StudentAutocomplete.as_view(), name='group_autocomplete'), # تم التعديل للاستدعاء الصحيح
     path('student-autocomplete/', StudentAutocomplete.as_view(), name='student_autocomplete'),
 
-    # 10. واجهة برمجة التطبيقات (API)
-    path('api/student/profile/<str:university_id>/', StudentProfileView.as_view(), name='student_profile_api'),
+    # 10. واجهة برمجة التطبيقات (API) لـ الفلوتر وباقي الروابط
+    path('api/student/profile/<str:university_id>/', api_views.StudentProfileView.as_view(), name='student_profile_api'),
+    path('api/student/announcements/<str:university_id>/', api_views.StudentAnnouncementsView.as_view(), name='api_student_announcements'),
+    
     path('lecture/<int:lecture_id>/pdf/', views.export_attendance_pdf, name='export_attendance_pdf'),
+    path('announcements/create/', views.create_announcement, name='create_announcement'),
 ]

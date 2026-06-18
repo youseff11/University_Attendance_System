@@ -11,9 +11,9 @@ from django.core.exceptions import ValidationError
 from django.utils.html import format_html 
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-
+from .models import Announcement
 # استيراد الموديلات
-from .models import DoctorProfile, Course, Group, Student, Lecture, AttendanceRecord
+from .models import DoctorProfile, Course, Group, Student, Lecture, AttendanceRecord, Announcement
 
 # ==============================================================================
 # 1. Doctor Profile Admin
@@ -194,3 +194,18 @@ class LectureAdmin(admin.ModelAdmin):
     list_display = ('course', 'group', 'date_time')
     list_filter = ('course', 'group')
     form = forms.modelform_factory(Lecture, fields='__all__', widgets={'group': autocomplete.ModelSelect2(url='group_autocomplete', forward=['course'])})
+
+@admin.register(Announcement)
+class AnnouncementAdmin(admin.ModelAdmin):
+    list_display = ('title', 'doctor', 'has_image', 'has_file', 'created_at')    
+    search_fields = ('title', 'doctor__username')    
+    list_filter = ('created_at', 'doctor')    
+    ordering = ('-created_at',)
+    def has_image(self, obj):
+        return bool(obj.image)
+    has_image.boolean = True
+    has_image.short_description = 'Image'
+    def has_file(self, obj):
+        return bool(obj.attachment_file)
+    has_file.boolean = True
+    has_file.short_description = 'File'
