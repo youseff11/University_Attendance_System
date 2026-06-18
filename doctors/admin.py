@@ -1,5 +1,3 @@
-# doctors/admin.py
-
 import pandas as pd
 from io import BytesIO
 from django.contrib import admin, messages
@@ -11,7 +9,7 @@ from django.core.exceptions import ValidationError
 from django.utils.html import format_html 
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-from .models import Announcement
+
 # استيراد الموديلات
 from .models import DoctorProfile, Course, Group, Student, Lecture, AttendanceRecord, Announcement
 
@@ -112,14 +110,20 @@ class StudentAdmin(admin.ModelAdmin):
             return format_html('<img src="{}" style="width: 30px; height: 30px; border-radius: 4px; object-fit: cover;" />', obj.image.url)
         return format_html('<span style="color: #999;">No Image</span>')
 
+    # التعديل هنا: استخدام set لمنع تكرار أسماء المجموعات المتطابقة في العرض
     def display_groups(self, obj):
         if not obj.pk: return "-"
-        return ", ".join(sorted([g.name for g in obj.groups.all()]))
+        unique_groups = set([g.name for g in obj.groups.all()])
+        return ", ".join(sorted(list(unique_groups)))
+    
+    display_groups.short_description = 'Display groups'
 
     def display_courses(self, obj):
         if not obj.pk: return "-"
         courses = set([g.course.code for g in obj.groups.all()])
         return format_html('<strong>{}</strong>', ", ".join(sorted(list(courses)))) if courses else "-"
+    
+    display_courses.short_description = 'Display courses'
 
     def save_model(self, request, obj, form, change):
         excel_file = form.cleaned_data.get('upload_excel')
@@ -163,7 +167,6 @@ class StudentAdmin(admin.ModelAdmin):
                 return
         super().save_model(request, obj, form, change)
 
-    # الحل النهائي لمنع الـ ValueError عند حفظ العلاقات
     def save_related(self, request, form, formsets, change):
         if hasattr(self, '_bulk_done'):
             return 
@@ -201,10 +204,12 @@ class AnnouncementAdmin(admin.ModelAdmin):
     search_fields = ('title', 'doctor__username')    
     list_filter = ('created_at', 'doctor')    
     ordering = ('-created_at',)
+    
     def has_image(self, obj):
         return bool(obj.image)
     has_image.boolean = True
     has_image.short_description = 'Image'
+    
     def has_file(self, obj):
         return bool(obj.attachment_file)
     has_file.boolean = True
