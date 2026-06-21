@@ -199,7 +199,13 @@ class StudentProfilePictureUploadView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        if not (image_file.content_type or '').startswith('image/'):
+        # بعض الأجهزة/المكتبات ما بترسلش content_type سليم، فبنرجع كمان نتأكد من الامتداد
+        content_type = (image_file.content_type or '')
+        filename = (image_file.name or '').lower()
+        allowed_extensions = ('.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif', '.gif')
+        is_valid_type = content_type.startswith('image/') or filename.endswith(allowed_extensions)
+
+        if not is_valid_type:
             return Response(
                 {"detail": "Invalid file type. Please upload an image."},
                 status=status.HTTP_400_BAD_REQUEST
