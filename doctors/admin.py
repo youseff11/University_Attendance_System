@@ -101,9 +101,17 @@ class StudentAdmin(admin.ModelAdmin):
 
     fieldsets = (
         ('Bulk Student Upload', {'fields': ('upload_excel',)}),
-        ('Individual Student Data', {'fields': ('university_id', 'name', 'image', 'face_id', 'gpa', 'groups')}), 
+        ('Individual Student Data', {'fields': ('university_id', 'name', 'image', 'face_id', 'gpa', 'groups')}),
+        ('App Profile Picture (uploaded by student)', {'fields': ('display_profile_picture',)}),
     )
-    readonly_fields = ('face_id',)
+    readonly_fields = ('face_id', 'display_profile_picture')
+
+    def display_profile_picture(self, obj):
+        if obj.pk and obj.profile_picture:
+            return format_html('<img src="{}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;" />', obj.profile_picture.url)
+        return format_html('<span style="color: #999;">No profile picture uploaded yet</span>')
+
+    display_profile_picture.short_description = 'Profile Picture'
 
     def display_face_status(self, obj):
         if obj.image:

@@ -104,6 +104,8 @@ class Student(models.Model):
     # الحقول الجديدة المطلوبة للبصمة 👇
     image = models.ImageField(upload_to='student_faces/', null=True, blank=True, verbose_name="Student Photo")
     face_id = models.CharField(max_length=255, null=True, blank=True, verbose_name="AWS Face ID")
+    # صورة البروفايل اللي الطالب نفسه بيرفعها من تطبيق الفلاتر (منفصلة عن صورة البصمة)
+    profile_picture = models.ImageField(upload_to='student_profile_pics/', null=True, blank=True, verbose_name="Profile Picture (Student Upload)")
     
     groups = models.ManyToManyField(Group, related_name='students', verbose_name="Enrolled Groups", blank=True)
     gpa = models.DecimalField(max_digits=3, decimal_places=2, null=True, blank=True, verbose_name="Grade Point Average (GPA)")

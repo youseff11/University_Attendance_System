@@ -1,7 +1,9 @@
 # doctors/api_views.py
+import os
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
 from django.shortcuts import get_object_or_404
 from django.db.models import Q, Count
 from .models import Student, DoctorProfile, Announcement, Course
@@ -28,7 +30,7 @@ class StudentProfileView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        serializer = StudentProfileSerializer(student)
+        serializer = StudentProfileSerializer(student, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -170,6 +172,52 @@ class StudentStatisticsView(APIView):
             'warning_threshold': WARNING_THRESHOLD,
             'per_course': per_course,
         }, status=status.HTTP_200_OK)
+
+
+class StudentProfilePictureUploadView(APIView):
+    """
+    رفع/تحديث صورة البروفايل الخاصة بالطالب من تطبيق الفلاتر.
+    مسار الـ API: POST /api/student/profile-picture/<university_id>/
+    الفورم فيلد المطلوب: profile_picture (multipart/form-data)
+    """
+    permission_classes = [permissions.AllowAny]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request, university_id, format=None):
+        try:
+            student = Student.objects.get(university_id=university_id)
+        except Student.DoesNotExist:
+            return Response(
+                {"detail": "Student not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        image_file = request.FILES.get('profile_picture')
+        if not image_file:
+            return Response(
+                {"detail": "No image file provided. Use the 'profile_picture' form field."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if not (image_file.content_type or '').startswith('image/'):
+            return Response(
+                {"detail": "Invalid file type. Please upload an image."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # حذف الصورة القديمة من السيرفر لو موجودة قبل ما نحفظ الجديدة
+        if student.profile_picture:
+            try:
+                if os.path.isfile(student.profile_picture.path):
+                    os.remove(student.profile_picture.path)
+            except Exception:
+                pass
+
+        student.profile_picture = image_file
+        student.save()
+
+        serializer = StudentProfileSerializer(student, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class ApiHealthCheckView(APIView):

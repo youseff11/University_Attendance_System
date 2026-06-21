@@ -32,10 +32,20 @@ class StudentProfileSerializer(serializers.ModelSerializer):
     is_under_warning = serializers.SerializerMethodField()
     warning_courses_details = serializers.SerializerMethodField() 
 
+    # 🖼️ صورة البروفايل اللي الطالب رفعها من التطبيق
+    profile_picture = serializers.SerializerMethodField()
+
     class Meta:
         model = Student
         # إضافة الحقول الجديدة
-        fields = ('id', 'name', 'university_id', 'gpa', 'groups_info', 'recent_attendance', 'is_under_warning', 'warning_courses_details')
+        fields = ('id', 'name', 'university_id', 'gpa', 'groups_info', 'recent_attendance', 'is_under_warning', 'warning_courses_details', 'profile_picture')
+
+    def get_profile_picture(self, obj):
+        if obj.profile_picture and hasattr(obj.profile_picture, 'url'):
+            request = self.context.get('request')
+            url = obj.profile_picture.url
+            return request.build_absolute_uri(url) if request else url
+        return None
 
     # دالة مساعدة لحساب الغيابات وتفاصيل الإنذار
     def _get_warning_details(self, obj):
