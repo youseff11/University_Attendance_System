@@ -51,6 +51,9 @@ urlpatterns = [
     # 10. واجهة برمجة التطبيقات (API) لـ الفلوتر وباقي الروابط
     path('api/student/profile/<str:university_id>/', api_views.StudentProfileView.as_view(), name='student_profile_api'),
     path('api/student/announcements/<str:university_id>/', api_views.StudentAnnouncementsView.as_view(), name='api_student_announcements'),
+    path('api/student/full-attendance/<str:university_id>/', api_views.StudentFullAttendanceView.as_view(), name='api_student_full_attendance'),
+    path('api/student/statistics/<str:university_id>/', api_views.StudentStatisticsView.as_view(), name='api_student_statistics'),
+    path('api/health/', api_views.ApiHealthCheckView.as_view(), name='api_health'),
     
     path('lecture/<int:lecture_id>/pdf/', views.export_attendance_pdf, name='export_attendance_pdf'),
     path('announcements/create/', views.create_announcement, name='create_announcement'),
